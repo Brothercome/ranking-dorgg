@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"npx shadcn@latest init -d --style new-york --base-color neutral 2>&1\",\"timeout\":60000,\"description\":\"Initialize shadcn/ui\"}",
+  "error": "Exit code 1\nnpm warn exec The following package was not found and will be installed: shadcn@4.1.2\nnpm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead\nerror: unknown option '--style'",
+  "timestamp": "2026-04-01T17:27:00.025Z",
+  "retry_count": 1
+}
