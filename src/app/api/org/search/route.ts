@@ -16,41 +16,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, data: [] });
     }
 
-    // Search our DB
-    const { data: dbSchools } = await supabase
-      .from("organizations")
-      .select("*")
-      .ilike("name", `%${query}%`)
-      .limit(10);
-
-    // Also search NEIS for new schools
-    const neisResults = await searchSchools(query);
-
-    // Merge: insert new schools from NEIS
-    const dbNames = new Set((dbSchools ?? []).map((s) => s.normalized_name));
-    const newSchools = neisResults.filter(
-      (s) => !dbNames.has(s.name.replace(/\s+/g, "").toLowerCase())
-    );
-
-    for (const school of newSchools) {
-      await supabase
-        .from("organizations")
-        .upsert({
-          type: "school",
-          name: school.name,
-          normalized_name: school.name.replace(/\s+/g, "").toLowerCase(),
-          school_code: school.schoolCode,
-          school_level: school.level,
-          region_sido: school.region,
-        }, { onConflict: "type,normalized_name" });
-    }
-
-    // Re-fetch merged results
+    // Search DB first (fast)
     let q = supabase
       .from("organizations")
       .select("id, name, school_level, region_sido, member_count")
       .ilike("name", `%${query}%`)
-      .limit(20);
+      .limit(10);
 
     if (level) {
       q = q.eq("school_level", level);
@@ -58,9 +29,24 @@ export async function GET(request: NextRequest) {
 
     const { data: allSchools } = await q;
 
+    // Sort: exact match → starts with → contains
+    const queryLower = query.toLowerCase();
+    const sorted = (allSchools ?? []).sort((a, b) => {
+      const aName = a.name.toLowerCase();
+      const bName = b.name.toLowerCase();
+      const aExact = aName === queryLower ? 0 : 1;
+      const bExact = bName === queryLower ? 0 : 1;
+      if (aExact !== bExact) return aExact - bExact;
+      const aStarts = aName.startsWith(queryLower) ? 0 : 1;
+      const bStarts = bName.startsWith(queryLower) ? 0 : 1;
+      if (aStarts !== bStarts) return aStarts - bStarts;
+      // Shorter names first (more relevant)
+      return a.name.length - b.name.length;
+    });
+
     return NextResponse.json({
       success: true,
-      data: (allSchools ?? []).map((s) => ({
+      data: sorted.slice(0, 10).map((s) => ({
         id: s.id,
         name: s.name,
         level: s.school_level,
