@@ -180,14 +180,14 @@ export function UnifiedSearch() {
   return (
     <div className="w-full max-w-2xl mx-auto">
       {/* Game Type Tabs */}
-      <div className="flex gap-1 mb-4 bg-muted/50 rounded-xl p-1 w-fit mx-auto">
+      <div className="flex gap-1 mb-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-1 w-fit mx-auto">
         {(["lol", "valorant"] as GameType[]).map((game) => (
           <button
             key={game}
             onClick={() => setState((s) => ({ ...s, gameType: game }))}
             className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
               state.gameType === game
-                ? "bg-background text-foreground shadow-sm"
+                ? "bg-white/10 text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -197,10 +197,10 @@ export function UnifiedSearch() {
       </div>
 
       {/* Search Box */}
-      <div className="bg-card border border-border rounded-2xl p-2 shadow-lg">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-lg">
         <div className="flex flex-col sm:flex-row gap-2">
           {/* Game ID Input */}
-          <div className="flex-1 flex items-center gap-1 bg-background rounded-xl px-4 py-3">
+          <div className="flex-1 flex items-center gap-1 bg-white/5 rounded-xl px-4 py-3">
             <span className="text-muted-foreground text-sm shrink-0">
               {state.gameType === "lol" ? "🎮" : "🔫"}
             </span>
@@ -235,7 +235,7 @@ export function UnifiedSearch() {
 
           {/* School Input */}
           <div className="relative flex-1">
-            <div className="flex items-center gap-1 bg-background rounded-xl px-4 py-3">
+            <div className="flex items-center gap-1 bg-white/5 rounded-xl px-4 py-3">
               <span className="text-muted-foreground text-sm">🏫</span>
               <input
                 ref={schoolInputRef}
@@ -265,13 +265,13 @@ export function UnifiedSearch() {
             {state.showSchoolDropdown && state.schools.length > 0 && (
               <div
                 ref={schoolDropdownRef}
-                className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-50"
+                className="absolute top-full left-0 right-0 mt-1 bg-card/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-xl overflow-hidden z-50"
               >
                 {state.schools.map((school) => (
                   <button
                     key={school.id}
                     onClick={() => selectSchool(school)}
-                    className="w-full text-left px-4 py-3 hover:bg-accent transition-colors border-b border-border/50 last:border-0"
+                    className="w-full text-left px-4 py-3 hover:bg-white/[0.05] transition-colors border-b border-white/5 last:border-0"
                   >
                     <div className="flex items-center justify-between">
                       <div>
