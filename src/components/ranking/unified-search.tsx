@@ -154,16 +154,9 @@ export function UnifiedSearch() {
   };
 
   const selectSchool = (school: SchoolResult) => {
-    setSelectedSchool(school);
+    // Navigate to school detail page
     setShowDropdown(false);
-
-    // If game already selected, auto submit
-    if (selectedGame) {
-      submitRanking(selectedGame, school);
-    } else {
-      setQuery("");
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
+    router.push(`/school/${school.id}`);
   };
 
   const submitRanking = async (game: GameResult, school: SchoolResult) => {
