@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { db } from "@/lib/db";
-import { accountOrganizations, organizations } from "@/lib/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { supabase } from "@/lib/db";
 import { computeRanking } from "@/lib/ranking/compute";
 import { checkRateLimit } from "@/lib/cache/rate-limit";
 import type { GameType } from "@/types/game";
@@ -15,7 +13,6 @@ const registerSchema = z.object({
 const orgIdSchema = z.string().uuid();
 const VALID_GAMES: GameType[] = ["valorant", "lol"];
 
-// POST: Register a game account to an organization and get ranking
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ orgId: string }> }
@@ -34,7 +31,6 @@ export async function POST(
 
     const body = await request.json();
     const parsed = registerSchema.safeParse(body);
-
     if (!parsed.success) {
       return NextResponse.json(
         { success: false, error: "잘못된 요청입니다" },
@@ -45,13 +41,13 @@ export async function POST(
     const { gameAccountId, gameType } = parsed.data;
 
     // Check org exists
-    const org = await db
-      .select()
-      .from(organizations)
-      .where(eq(organizations.id, orgId))
-      .limit(1);
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("id")
+      .eq("id", orgId)
+      .single();
 
-    if (org.length === 0) {
+    if (!org) {
       return NextResponse.json(
         { success: false, error: "학교를 찾을 수 없습니다" },
         { status: 404 }
@@ -59,26 +55,28 @@ export async function POST(
     }
 
     // Link account to org (upsert)
-    await db
-      .insert(accountOrganizations)
-      .values({ gameAccountId, organizationId: orgId })
-      .onConflictDoNothing();
+    await supabase
+      .from("account_organizations")
+      .upsert(
+        { game_account_id: gameAccountId, organization_id: orgId },
+        { onConflict: "game_account_id,organization_id" }
+      );
 
-    // Atomically update member count using subquery
-    await db
-      .update(organizations)
-      .set({
-        memberCount: sql`(SELECT COUNT(*) FROM account_organizations WHERE organization_id = ${orgId})`,
-      })
-      .where(eq(organizations.id, orgId));
+    // Update member count atomically
+    const { count } = await supabase
+      .from("account_organizations")
+      .select("*", { count: "exact", head: true })
+      .eq("organization_id", orgId);
+
+    await supabase
+      .from("organizations")
+      .update({ member_count: count ?? 0 })
+      .eq("id", orgId);
 
     // Compute ranking
     const ranking = await computeRanking(orgId, gameType, gameAccountId);
 
-    return NextResponse.json({
-      success: true,
-      data: ranking,
-    });
+    return NextResponse.json({ success: true, data: ranking });
   } catch (error) {
     console.error("Rank error:", error);
     return NextResponse.json(
@@ -88,7 +86,6 @@ export async function POST(
   }
 }
 
-// GET: Get ranking for an organization
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ orgId: string }> }
@@ -126,10 +123,7 @@ export async function GET(
       });
     }
 
-    return NextResponse.json({
-      success: true,
-      data: ranking,
-    });
+    return NextResponse.json({ success: true, data: ranking });
   } catch (error) {
     console.error("Rank GET error:", error);
     return NextResponse.json(

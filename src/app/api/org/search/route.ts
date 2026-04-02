@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { searchSchools } from "@/lib/api/neis";
-import { db } from "@/lib/db";
-import { organizations } from "@/lib/db/schema";
-import { ilike } from "drizzle-orm";
+import { supabase } from "@/lib/db";
 import { checkRateLimit } from "@/lib/cache/rate-limit";
 
 export async function GET(request: NextRequest) {
@@ -15,66 +13,59 @@ export async function GET(request: NextRequest) {
     const level = searchParams.get("level") as "middle" | "high" | "university" | null;
 
     if (query.length < 1) {
-      return NextResponse.json({
-        success: true,
-        data: [],
-      });
+      return NextResponse.json({ success: true, data: [] });
     }
 
-    // First check our DB for existing schools
-    const dbSchools = await db
-      .select()
-      .from(organizations)
-      .where(ilike(organizations.name, `%${query}%`))
+    // Search our DB
+    const { data: dbSchools } = await supabase
+      .from("organizations")
+      .select("*")
+      .ilike("name", `%${query}%`)
       .limit(10);
 
     // Also search NEIS for new schools
     const neisResults = await searchSchools(query);
 
-    // Merge: DB results first, then NEIS results not already in DB
-    const dbNames = new Set(dbSchools.map((s) => s.normalizedName));
+    // Merge: insert new schools from NEIS
+    const dbNames = new Set((dbSchools ?? []).map((s) => s.normalized_name));
     const newSchools = neisResults.filter(
       (s) => !dbNames.has(s.name.replace(/\s+/g, "").toLowerCase())
     );
 
-    // Insert new schools into DB
     for (const school of newSchools) {
-      try {
-        await db
-          .insert(organizations)
-          .values({
-            type: "school",
-            name: school.name,
-            normalizedName: school.name.replace(/\s+/g, "").toLowerCase(),
-            schoolCode: school.schoolCode,
-            schoolLevel: school.level,
-            regionSido: school.region,
-          })
-          .onConflictDoNothing();
-      } catch {
-        // ignore duplicate conflicts
-      }
+      await supabase
+        .from("organizations")
+        .upsert({
+          type: "school",
+          name: school.name,
+          normalized_name: school.name.replace(/\s+/g, "").toLowerCase(),
+          school_code: school.schoolCode,
+          school_level: school.level,
+          region_sido: school.region,
+        }, { onConflict: "type,normalized_name" });
     }
 
     // Re-fetch merged results
-    const allSchools = await db
-      .select()
-      .from(organizations)
-      .where(ilike(organizations.name, `%${query}%`))
+    let q = supabase
+      .from("organizations")
+      .select("id, name, school_level, region_sido, member_count")
+      .ilike("name", `%${query}%`)
       .limit(20);
 
-    const filtered = level
-      ? allSchools.filter((s) => s.schoolLevel === level)
-      : allSchools;
+    if (level) {
+      q = q.eq("school_level", level);
+    }
+
+    const { data: allSchools } = await q;
 
     return NextResponse.json({
       success: true,
-      data: filtered.map((s) => ({
+      data: (allSchools ?? []).map((s) => ({
         id: s.id,
         name: s.name,
-        level: s.schoolLevel,
-        region: s.regionSido,
-        memberCount: s.memberCount,
+        level: s.school_level,
+        region: s.region_sido,
+        memberCount: s.member_count,
       })),
     });
   } catch (error) {

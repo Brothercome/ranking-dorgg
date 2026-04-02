@@ -1,6 +1,3 @@
-import { db } from "@/lib/db";
-import { sql } from "drizzle-orm";
-
 export const CACHE_TTL = {
   SEARCH: 300,        // 5 minutes
   RANK_DATA: 1800,    // 30 minutes

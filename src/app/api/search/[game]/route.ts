@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getGameAdapter } from "@/lib/api/game-adapter";
-import { db } from "@/lib/db";
-import { gameAccounts } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { supabase } from "@/lib/db";
 import { checkRateLimit } from "@/lib/cache/rate-limit";
 import type { GameType } from "@/types/game";
 
@@ -52,60 +50,56 @@ export async function POST(
     }
 
     // Upsert game account in DB
-    const existing = await db
-      .select()
-      .from(gameAccounts)
-      .where(
-        and(
-          eq(gameAccounts.gameType, gameType),
-          eq(gameAccounts.gameName, profile.gameName),
-          eq(gameAccounts.tagLine, profile.tagLine)
-        )
-      )
+    const { data: existing } = await supabase
+      .from("game_accounts")
+      .select("id")
+      .eq("game_type", gameType)
+      .eq("game_name", profile.gameName)
+      .eq("tag_line", profile.tagLine)
       .limit(1);
 
     let gameAccountId: string;
+    const winRate = profile.wins + profile.losses > 0
+      ? profile.wins / (profile.wins + profile.losses)
+      : 0;
 
-    if (existing.length > 0) {
-      await db
-        .update(gameAccounts)
-        .set({
+    if (existing && existing.length > 0) {
+      await supabase
+        .from("game_accounts")
+        .update({
           puuid: profile.puuid,
-          currentTier: profile.tier,
-          currentRank: profile.rank,
-          currentPoints: profile.points,
-          tierNumeric: profile.tierNumeric,
+          current_tier: profile.tier,
+          current_rank: profile.rank,
+          current_points: profile.points,
+          tier_numeric: profile.tierNumeric,
           wins: profile.wins,
           losses: profile.losses,
-          winRate: profile.wins + profile.losses > 0
-            ? profile.wins / (profile.wins + profile.losses)
-            : 0,
-          rawRankData: profile.raw,
-          lastUpdatedAt: new Date(),
+          win_rate: winRate,
+          raw_rank_data: profile.raw,
+          last_updated_at: new Date().toISOString(),
         })
-        .where(eq(gameAccounts.id, existing[0].id));
+        .eq("id", existing[0].id);
       gameAccountId = existing[0].id;
     } else {
-      const inserted = await db
-        .insert(gameAccounts)
-        .values({
-          gameType,
-          gameName: profile.gameName,
-          tagLine: profile.tagLine,
+      const { data: inserted } = await supabase
+        .from("game_accounts")
+        .insert({
+          game_type: gameType,
+          game_name: profile.gameName,
+          tag_line: profile.tagLine,
           puuid: profile.puuid,
-          currentTier: profile.tier,
-          currentRank: profile.rank,
-          currentPoints: profile.points,
-          tierNumeric: profile.tierNumeric,
+          current_tier: profile.tier,
+          current_rank: profile.rank,
+          current_points: profile.points,
+          tier_numeric: profile.tierNumeric,
           wins: profile.wins,
           losses: profile.losses,
-          winRate: profile.wins + profile.losses > 0
-            ? profile.wins / (profile.wins + profile.losses)
-            : 0,
-          rawRankData: profile.raw,
+          win_rate: winRate,
+          raw_rank_data: profile.raw,
         })
-        .returning({ id: gameAccounts.id });
-      gameAccountId = inserted[0].id;
+        .select("id")
+        .single();
+      gameAccountId = inserted!.id;
     }
 
     return NextResponse.json({

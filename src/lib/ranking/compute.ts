@@ -1,6 +1,4 @@
-import { db } from "@/lib/db";
-import { gameAccounts, accountOrganizations, organizations } from "@/lib/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { supabase } from "@/lib/db";
 import type { RankEntry, RankingResult } from "@/types/ranking";
 import type { GameType } from "@/types/game";
 
@@ -10,48 +8,43 @@ export async function computeRanking(
   targetGameAccountId?: string
 ): Promise<RankingResult | null> {
   // Get all game accounts in this org for this game type
-  const members = await db
-    .select({
-      gameAccountId: gameAccounts.id,
-      gameName: gameAccounts.gameName,
-      tagLine: gameAccounts.tagLine,
-      gameType: gameAccounts.gameType,
-      tier: gameAccounts.currentTier,
-      rank: gameAccounts.currentRank,
-      points: gameAccounts.currentPoints,
-      tierNumeric: gameAccounts.tierNumeric,
-    })
-    .from(accountOrganizations)
-    .innerJoin(gameAccounts, eq(accountOrganizations.gameAccountId, gameAccounts.id))
-    .where(
-      and(
-        eq(accountOrganizations.organizationId, organizationId),
-        eq(gameAccounts.gameType, gameType)
-      )
-    )
-    .orderBy(desc(gameAccounts.tierNumeric));
+  const { data: links } = await supabase
+    .from("account_organizations")
+    .select("game_account_id")
+    .eq("organization_id", organizationId);
 
-  if (members.length === 0) return null;
+  if (!links || links.length === 0) return null;
 
-  const org = await db
-    .select({ name: organizations.name })
-    .from(organizations)
-    .where(eq(organizations.id, organizationId))
-    .limit(1);
+  const accountIds = links.map((l) => l.game_account_id);
 
-  const orgName = org[0]?.name ?? "Unknown";
+  const { data: members } = await supabase
+    .from("game_accounts")
+    .select("id, game_name, tag_line, game_type, current_tier, current_rank, current_points, tier_numeric")
+    .eq("game_type", gameType)
+    .in("id", accountIds)
+    .order("tier_numeric", { ascending: false });
+
+  if (!members || members.length === 0) return null;
+
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("name")
+    .eq("id", organizationId)
+    .single();
+
+  const orgName = org?.name ?? "Unknown";
 
   const ranked: RankEntry[] = members.map((m, idx) => ({
     rank: idx + 1,
     totalParticipants: members.length,
-    gameAccountId: m.gameAccountId,
-    gameName: m.gameName,
-    tagLine: m.tagLine,
-    gameType: m.gameType as GameType,
-    tier: m.tier ?? "UNRANKED",
-    tierRank: m.rank ?? "",
-    points: m.points ?? 0,
-    tierNumeric: m.tierNumeric ?? 0,
+    gameAccountId: m.id,
+    gameName: m.game_name,
+    tagLine: m.tag_line,
+    gameType: m.game_type as GameType,
+    tier: m.current_tier ?? "UNRANKED",
+    tierRank: m.current_rank ?? "",
+    points: m.current_points ?? 0,
+    tierNumeric: m.tier_numeric ?? 0,
     organizationName: orgName,
   }));
 
