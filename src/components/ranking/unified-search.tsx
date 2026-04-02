@@ -144,7 +144,7 @@ export function UnifiedSearch() {
             id: `region-${region}`,
             label: region,
             sublabel: "",
-            href: "#",
+            href: `/region/${encodeURIComponent(region)}`,
           });
         });
       }
@@ -207,7 +207,6 @@ export function UnifiedSearch() {
   };
 
   const navigate = (suggestion: Suggestion) => {
-    if (suggestion.href === "#") return;
     setShowDropdown(false);
     router.push(suggestion.href);
   };
@@ -252,7 +251,7 @@ export function UnifiedSearch() {
         {showDropdown && (
           <div
             ref={dropdownRef}
-            className="absolute top-full left-0 right-0 mt-1.5 bg-[#1a1a2e]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 max-h-[400px] overflow-y-auto"
+            className="absolute top-full left-0 right-0 mt-1.5 bg-[#111] backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 max-h-[400px] overflow-y-auto"
           >
             {grouped.map((group, gi) => {
               const Icon = CATEGORY_ICONS[group.category];
@@ -270,9 +269,7 @@ export function UnifiedSearch() {
                     <button
                       key={item.id}
                       onClick={() => navigate(item)}
-                      className={`w-full text-left px-4 py-2.5 hover:bg-white/[0.05] transition-colors flex items-center gap-3 ${
-                        item.href === "#" ? "opacity-50 cursor-default" : ""
-                      }`}
+                      className="w-full text-left px-4 py-2.5 hover:bg-white/[0.05] transition-colors flex items-center gap-3"
                     >
                       <Icon />
                       <span className="text-sm font-medium truncate">{item.label}</span>
