@@ -1,65 +1,89 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+
+const GAMES = [
+  {
+    id: "valorant" as const,
+    name: "발로란트",
+    nameEn: "VALORANT",
+    color: "#ff4655",
+    gradient: "from-red-600/20 to-red-900/20",
+    borderColor: "border-red-500/30 hover:border-red-500/60",
+  },
+  {
+    id: "lol" as const,
+    name: "리그 오브 레전드",
+    nameEn: "League of Legends",
+    color: "#c89b3c",
+    gradient: "from-yellow-600/20 to-yellow-900/20",
+    borderColor: "border-yellow-500/30 hover:border-yellow-500/60",
+  },
+];
+
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main className="flex-1 flex flex-col items-center justify-center px-4 py-16">
+      {/* Hero */}
+      <div className="text-center mb-16 max-w-2xl">
+        <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent">
+          랭킹도르그
+        </h1>
+        <p className="text-xl md:text-2xl text-muted-foreground mb-4">
+          우리 학교에서 내 게임 랭킹은 몇 등?
+        </p>
+        <p className="text-muted-foreground">
+          게임 아이디를 검색하고, 학교를 선택하면
+          <br />
+          우리 학교에서 몇 등인지 바로 확인!
+        </p>
+      </div>
+
+      {/* Game Selection */}
+      <div className="w-full max-w-md space-y-4 mb-16">
+        <p className="text-center text-sm text-muted-foreground mb-6">
+          게임을 선택하세요
+        </p>
+        {GAMES.map((game) => (
+          <Link key={game.id} href={`/search?game=${game.id}`} className="block">
+            <div
+              className={`relative overflow-hidden rounded-2xl border ${game.borderColor} bg-gradient-to-r ${game.gradient} p-6 transition-all duration-300 hover:scale-[1.02] cursor-pointer`}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-lg font-bold" style={{ color: game.color }}>
+                    {game.nameEn}
+                  </div>
+                  <div className="text-sm text-muted-foreground">{game.name}</div>
+                </div>
+                <Button
+                  variant="ghost"
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  시작 →
+                </Button>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {/* Stats / Social proof */}
+      <div className="flex gap-8 text-center text-muted-foreground">
+        <div>
+          <div className="text-2xl font-bold text-foreground">🎮</div>
+          <div className="text-xs mt-1">2개 게임 지원</div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div>
+          <div className="text-2xl font-bold text-foreground">🏫</div>
+          <div className="text-xs mt-1">전국 학교 검색</div>
         </div>
-      </main>
-    </div>
+        <div>
+          <div className="text-2xl font-bold text-foreground">📱</div>
+          <div className="text-xs mt-1">카톡/인스타 공유</div>
+        </div>
+      </div>
+    </main>
   );
 }
