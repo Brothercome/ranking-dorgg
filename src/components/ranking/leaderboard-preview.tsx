@@ -23,11 +23,11 @@ interface LeaderboardEntry {
 const MOCK: Record<ScopeTab, Record<GameType, LeaderboardEntry[]>> = {
   school: {
     lol: [
-      { rank: 1, gameName: "Hide on bush", tagLine: "KR1", tier: "CHALLENGER", tierRank: "", points: 1241, gameType: "lol", label: "마포고등학교", isCelebrity: true, celebrityName: "Faker (이상혁)" },
-      { rank: 2, gameName: "T1 Gumayusi", tagLine: "KR1", tier: "GRANDMASTER", tierRank: "", points: 987, gameType: "lol", label: "서울과학고등학교", isCelebrity: true, celebrityName: "Gumayusi (이민형)" },
-      { rank: 3, gameName: "Deft", tagLine: "KR1", tier: "GRANDMASTER", tierRank: "", points: 845, gameType: "lol", label: "마포고등학교", isCelebrity: true, celebrityName: "Deft (김혁규)" },
-      { rank: 4, gameName: "Chovy", tagLine: "KR1", tier: "MASTER", tierRank: "", points: 523, gameType: "lol", label: "가좌고등학교", isCelebrity: true, celebrityName: "Chovy (정지훈)" },
-      { rank: 5, gameName: "Ruler", tagLine: "KR1", tier: "MASTER", tierRank: "", points: 412, gameType: "lol", label: "안양공업고등학교", isCelebrity: true, celebrityName: "Ruler (박재혁)" },
+      { rank: 1, gameName: "Juhana", tagLine: "IsYou", tier: "CHALLENGER", tierRank: "", points: 2502, gameType: "lol", label: "미확인", isCelebrity: true, celebrityName: "Juhan (이주한)" },
+      { rank: 2, gameName: "HLE Gumayusi", tagLine: "0298", tier: "CHALLENGER", tierRank: "", points: 2375, gameType: "lol", label: "미확인", isCelebrity: true, celebrityName: "Gumayusi (이민형)" },
+      { rank: 3, gameName: "DK ShowMaker", tagLine: "KR1", tier: "CHALLENGER", tierRank: "", points: 2244, gameType: "lol", label: "미확인", isCelebrity: true, celebrityName: "ShowMaker (허수)" },
+      { rank: 4, gameName: "Hide on bush", tagLine: "KR1", tier: "GRANDMASTER", tierRank: "", points: 1269, gameType: "lol", label: "마포고등학교", isCelebrity: true, celebrityName: "Faker (이상혁)" },
+      { rank: 5, gameName: "황금고블린1", tagLine: "KR1", tier: "CHALLENGER", tierRank: "", points: 1149, gameType: "lol", label: "안양공업고등학교", isCelebrity: true, celebrityName: "Ruler (박재혁)" },
     ],
     valorant: [
       { rank: 1, gameName: "MaKo", tagLine: "KR1", tier: "Radiant", tierRank: "", points: 487, gameType: "valorant", label: "서울과학고등학교" },
