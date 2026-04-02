@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -113,8 +114,8 @@ export function SearchFlow({ initialGame }: SearchFlowProps) {
     <div className="w-full max-w-lg">
       {/* Header */}
       <div className="text-center mb-8">
-        <button onClick={reset} className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          랭킹도르그
+        <button onClick={reset}>
+          <Image src="/dorranking.svg" alt="랭킹도르그" width={200} height={34} />
         </button>
         {gameType && (
           <p className="text-muted-foreground mt-2">

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
 const GAMES = [
@@ -27,9 +28,14 @@ export default function HomePage() {
     <main className="flex-1 flex flex-col items-center justify-center px-4 py-16">
       {/* Hero */}
       <div className="text-center mb-16 max-w-2xl">
-        <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent">
-          랭킹도르그
-        </h1>
+        <Image
+          src="/dorranking.svg"
+          alt="랭킹도르그"
+          width={300}
+          height={50}
+          className="mx-auto mb-6"
+          priority
+        />
         <p className="text-xl md:text-2xl text-muted-foreground mb-4">
           우리 학교에서 내 게임 랭킹은 몇 등?
         </p>

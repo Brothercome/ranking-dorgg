@@ -48,9 +48,7 @@ export default async function SharePage({ params, searchParams }: SharePageProps
   return (
     <main className="flex-1 flex flex-col items-center justify-center px-4 py-16">
       <div className="text-center max-w-md">
-        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          랭킹도르그
-        </h1>
+        <img src="/dorranking.svg" alt="랭킹도르그" width={200} height={34} className="mx-auto mb-2" />
         <p className="text-muted-foreground mb-8">우리 학교에서 내 게임 랭킹은?</p>
 
         <div className="bg-gradient-to-b from-[#1a1a3e] to-[#0f0f23] rounded-2xl p-8 mb-8">
