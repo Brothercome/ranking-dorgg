@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchSchools } from "@/lib/api/neis";
 import { supabase } from "@/lib/db";
 import { checkRateLimit } from "@/lib/cache/rate-limit";
 
@@ -16,12 +15,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, data: [] });
     }
 
-    // Search DB first (fast)
+    // Search by name OR aliases
     let q = supabase
       .from("organizations")
-      .select("id, name, school_level, region_sido, member_count")
-      .ilike("name", `%${query}%`)
-      .limit(10);
+      .select("id, name, school_level, region_sido, member_count, aliases")
+      .or(`name.ilike.%${query}%,aliases.ilike.%${query}%`)
+      .limit(15);
 
     if (level) {
       q = q.eq("school_level", level);
@@ -29,18 +28,25 @@ export async function GET(request: NextRequest) {
 
     const { data: allSchools } = await q;
 
-    // Sort: exact match → starts with → contains
+    // Sort: exact name/alias match → starts with → contains
     const queryLower = query.toLowerCase();
     const sorted = (allSchools ?? []).sort((a, b) => {
       const aName = a.name.toLowerCase();
       const bName = b.name.toLowerCase();
-      const aExact = aName === queryLower ? 0 : 1;
-      const bExact = bName === queryLower ? 0 : 1;
+      const aAliases = (a.aliases ?? "").toLowerCase();
+      const bAliases = (b.aliases ?? "").toLowerCase();
+
+      // Exact match on name or alias
+      const aExact = aName === queryLower || aAliases.split(",").some((al: string) => al.trim() === queryLower) ? 0 : 1;
+      const bExact = bName === queryLower || bAliases.split(",").some((al: string) => al.trim() === queryLower) ? 0 : 1;
       if (aExact !== bExact) return aExact - bExact;
-      const aStarts = aName.startsWith(queryLower) ? 0 : 1;
-      const bStarts = bName.startsWith(queryLower) ? 0 : 1;
+
+      // Starts with
+      const aStarts = aName.startsWith(queryLower) || aAliases.split(",").some((al: string) => al.trim().startsWith(queryLower)) ? 0 : 1;
+      const bStarts = bName.startsWith(queryLower) || bAliases.split(",").some((al: string) => al.trim().startsWith(queryLower)) ? 0 : 1;
       if (aStarts !== bStarts) return aStarts - bStarts;
-      // Shorter names first (more relevant)
+
+      // Shorter names first
       return a.name.length - b.name.length;
     });
 
