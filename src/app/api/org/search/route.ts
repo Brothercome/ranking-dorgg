@@ -11,10 +11,10 @@ export async function GET(request: NextRequest) {
     if (rateLimitResponse) return rateLimitResponse;
 
     const { searchParams } = new URL(request.url);
-    const query = (searchParams.get("q") ?? "").replace(/[^가-힣a-zA-Z0-9\s]/g, "").slice(0, 30);
+    const query = (searchParams.get("q") ?? "").replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9\s]/g, "").slice(0, 30);
     const level = searchParams.get("level") as "middle" | "high" | "university" | null;
 
-    if (query.length < 2) {
+    if (query.length < 1) {
       return NextResponse.json({
         success: true,
         data: [],

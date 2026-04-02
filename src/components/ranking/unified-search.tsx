@@ -62,7 +62,7 @@ export function UnifiedSearch() {
 
   const search = useCallback(
     async (q: string) => {
-      if (q.length < 2) {
+      if (q.length < 1) {
         setSuggestions([]);
         return;
       }
@@ -72,15 +72,15 @@ export function UnifiedSearch() {
 
       // Check if it looks like a game ID (contains #)
       const hasHash = q.includes("#");
-      const isKorean = /[가-힣]/.test(q) && !hasHash;
+      const isKorean = /[가-힣ㄱ-ㅎㅏ-ㅣ]/.test(q) && !hasHash;
 
-      // Search schools if it looks like Korean text
+      // Search schools - start from 1 char for Korean (chosung matching)
       if (isKorean || (!hasHash && q.length >= 2)) {
         try {
           const res = await fetch(`/api/org/search?q=${encodeURIComponent(q)}`);
           const data = await res.json();
           if (data.success && data.data.length > 0) {
-            data.data.slice(0, 5).forEach((school: SchoolResult) => {
+            data.data.slice(0, 10).forEach((school: SchoolResult) => {
               items.push({ type: "school", data: school });
             });
           }
@@ -89,7 +89,7 @@ export function UnifiedSearch() {
         }
       }
 
-      // Search game ID if it contains # or looks like a game name
+      // Search game ID if it contains # - try both games in parallel
       if (hasHash) {
         const parts = q.split("#");
         const gameName = parts[0].trim();
@@ -97,14 +97,24 @@ export function UnifiedSearch() {
 
         if (gameName && tagLine && tagLine.length >= 1) {
           try {
-            const res = await fetch(`/api/search/${gameType}`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ gameName, tagLine }),
-            });
-            const data = await res.json();
-            if (data.success) {
-              items.unshift({ type: "game", data: data.data });
+            const [lolRes, valRes] = await Promise.allSettled([
+              fetch("/api/search/lol", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ gameName, tagLine }),
+              }).then((r) => r.json()),
+              fetch("/api/search/valorant", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ gameName, tagLine }),
+              }).then((r) => r.json()),
+            ]);
+
+            if (lolRes.status === "fulfilled" && lolRes.value.success) {
+              items.unshift({ type: "game", data: lolRes.value.data });
+            }
+            if (valRes.status === "fulfilled" && valRes.value.success) {
+              items.unshift({ type: "game", data: valRes.value.data });
             }
           } catch {
             // silent
@@ -131,7 +141,7 @@ export function UnifiedSearch() {
     setError("");
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => search(value), 400);
+    debounceRef.current = setTimeout(() => search(value), 200);
   };
 
   const selectGame = (game: GameResult) => {
@@ -205,26 +215,7 @@ export function UnifiedSearch() {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      {/* Game Type Tabs */}
-      <div className="flex gap-1 mb-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-1 w-fit mx-auto">
-        {(["lol", "valorant"] as GameType[]).map((game) => (
-          <button
-            key={game}
-            onClick={() => {
-              setGameType(game);
-              setSelectedGame(null);
-              setQuery("");
-            }}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
-              gameType === game
-                ? "bg-white/10 text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {GAME_LABELS[game]}
-          </button>
-        ))}
-      </div>
+      {/* Game type is auto-detected from search results */}
 
       {/* Selected chips */}
       {(selectedGame || selectedSchool) && (
