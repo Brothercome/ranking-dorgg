@@ -72,7 +72,7 @@ const LOL_QUEUE_TYPES: Record<number, string> = {
 async function riotFetch<T>(url: string): Promise<T | null> {
   const res = await fetch(url, { headers: riotHeaders(), next: { revalidate: 300 } });
   if (!res.ok) {
-    if (res.status === 404) return null;
+    if (res.status === 404 || res.status === 403) return null;
     throw new Error(`Riot API error: ${res.status} ${res.statusText}`);
   }
   return res.json() as Promise<T>;
