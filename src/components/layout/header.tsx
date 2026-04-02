@@ -9,7 +9,7 @@ export function Header() {
       <div className="flex h-14 items-center justify-between px-4 max-w-5xl mx-auto">
         {/* Logo - Home */}
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.svg" alt="도르" width={32} height={32} />
+          <Image src="/logo.svg" alt="도르" width={48} height={48} />
         </Link>
 
         {/* Nav */}
