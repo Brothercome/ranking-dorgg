@@ -31,7 +31,7 @@ export function UnifiedSearch() {
   const router = useRouter();
   const schoolInputRef = useRef<HTMLInputElement>(null);
   const schoolDropdownRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const debounceRef = useRef<NodeJS.Timeout>(null);
 
   const [state, setState] = useState<SearchState>({
     gameName: "",
