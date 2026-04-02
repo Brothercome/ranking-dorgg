@@ -28,7 +28,7 @@ export function TierBadge({ gameType, tier, rank, size = "sm" }: TierBadgeProps)
 
   return (
     <span
-      className="inline-flex items-center gap-1 font-medium rounded-md"
+      className="inline-flex items-center gap-1 font-medium rounded-md whitespace-nowrap shrink-0"
       style={{
         color: tierColor,
         backgroundColor: `${tierColor}15`,
