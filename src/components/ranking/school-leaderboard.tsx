@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { GameType } from "@/types/game";
-import { GAME_LABELS, LOL_TIER_KOREAN, VALORANT_TIER_KOREAN } from "@/types/game";
+import { GAME_LABELS } from "@/types/game";
+import { TierBadge } from "./tier-badge";
 
 const TIER_COLORS: Record<string, string> = {
   IRON: "#5e5e5e", BRONZE: "#a8713a", SILVER: "#b4b4b4", GOLD: "#e8c252",
@@ -25,6 +26,9 @@ interface LeaderboardEntry {
   tierRank: string;
   points: number;
   tierNumeric: number;
+  isCelebrity?: boolean;
+  celebrityName?: string | null;
+  celebrityCategory?: string | null;
 }
 
 interface RegionRanking {
@@ -100,11 +104,6 @@ export function SchoolLeaderboard({
 
   const top3 = entries.slice(0, 3);
   const rest = entries.slice(3);
-
-  const getTierDisplay = (tier: string) => {
-    if (gameType === "lol") return LOL_TIER_KOREAN[tier] ?? tier;
-    return VALORANT_TIER_KOREAN[tier] ?? tier;
-  };
 
   const getTierColor = (tier: string) => TIER_COLORS[tier] ?? "#888";
 
@@ -198,21 +197,19 @@ export function SchoolLeaderboard({
                   <div className="text-2xl mb-1">{RANK_BADGES[entry.rank - 1]}</div>
                   <div className="text-sm font-semibold truncate">
                     {entry.gameName}
+                    {entry.isCelebrity && (
+                      <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 align-middle">
+                        {entry.celebrityCategory === "현역" ? "PRO" : entry.celebrityCategory === "크리에이터" ? "BJ" : "PRO"}
+                      </span>
+                    )}
                   </div>
-                  <div className="text-xs text-muted-foreground/60 truncate">
-                    #{entry.tagLine}
-                  </div>
+                  {entry.isCelebrity && entry.celebrityName ? (
+                    <div className="text-xs text-yellow-400/70 truncate">{entry.celebrityName}</div>
+                  ) : (
+                    <div className="text-xs text-muted-foreground/60 truncate">#{entry.tagLine}</div>
+                  )}
                   <div className="mt-2">
-                    <span
-                      className="text-xs font-medium px-2 py-0.5 rounded-md inline-block"
-                      style={{
-                        color: tierColor,
-                        backgroundColor: `${tierColor}15`,
-                        border: `1px solid ${tierColor}25`,
-                      }}
-                    >
-                      {getTierDisplay(entry.tier)} {entry.tierRank}
-                    </span>
+                    <TierBadge gameType={gameType} tier={entry.tier} rank={entry.tierRank} />
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
                     {entry.points}{gameType === "lol" ? "LP" : "RR"}
@@ -249,21 +246,17 @@ export function SchoolLeaderboard({
                   <div className="min-w-0">
                     <span className="text-sm font-medium truncate block">
                       {entry.gameName}
-                      <span className="text-muted-foreground/50 text-xs ml-1">
-                        #{entry.tagLine}
-                      </span>
+                      {entry.isCelebrity ? (
+                        <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">PRO</span>
+                      ) : (
+                        <span className="text-muted-foreground/50 text-xs ml-1">#{entry.tagLine}</span>
+                      )}
                     </span>
+                    {entry.isCelebrity && entry.celebrityName && (
+                      <span className="text-xs text-yellow-400/70 truncate block">{entry.celebrityName}</span>
+                    )}
                   </div>
-                  <span
-                    className="text-xs font-medium px-2 py-0.5 rounded-md inline-block whitespace-nowrap"
-                    style={{
-                      color: tierColor,
-                      backgroundColor: `${tierColor}15`,
-                      border: `1px solid ${tierColor}25`,
-                    }}
-                  >
-                    {getTierDisplay(entry.tier)} {entry.tierRank}
-                  </span>
+                  <TierBadge gameType={gameType} tier={entry.tier} rank={entry.tierRank} />
                   <span className="text-xs text-muted-foreground text-right">
                     {entry.points}{gameType === "lol" ? "LP" : "RR"}
                   </span>

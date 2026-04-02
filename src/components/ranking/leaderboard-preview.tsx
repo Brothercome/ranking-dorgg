@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import type { GameType } from "@/types/game";
-import { GAME_LABELS, LOL_TIER_KOREAN, VALORANT_TIER_KOREAN } from "@/types/game";
+import { GAME_LABELS } from "@/types/game";
+import { TierBadge } from "./tier-badge";
 
 type ScopeTab = "school" | "region";
 
@@ -15,16 +16,18 @@ interface LeaderboardEntry {
   points: number;
   gameType: GameType;
   label: string; // school name or region
+  isCelebrity?: boolean;
+  celebrityName?: string;
 }
 
 const MOCK: Record<ScopeTab, Record<GameType, LeaderboardEntry[]>> = {
   school: {
     lol: [
-      { rank: 1, gameName: "Hide on bush", tagLine: "KR1", tier: "CHALLENGER", tierRank: "", points: 1241, gameType: "lol", label: "서울과학고등학교" },
-      { rank: 2, gameName: "T1 Gumayusi", tagLine: "KR1", tier: "GRANDMASTER", tierRank: "", points: 987, gameType: "lol", label: "서울과학고등학교" },
-      { rank: 3, gameName: "Deft", tagLine: "KR1", tier: "GRANDMASTER", tierRank: "", points: 845, gameType: "lol", label: "서울과학고등학교" },
-      { rank: 4, gameName: "Chovy", tagLine: "KR1", tier: "MASTER", tierRank: "", points: 523, gameType: "lol", label: "한국디지털미디어고" },
-      { rank: 5, gameName: "Ruler", tagLine: "KR1", tier: "MASTER", tierRank: "", points: 412, gameType: "lol", label: "한국디지털미디어고" },
+      { rank: 1, gameName: "Hide on bush", tagLine: "KR1", tier: "CHALLENGER", tierRank: "", points: 1241, gameType: "lol", label: "마포고등학교", isCelebrity: true, celebrityName: "Faker (이상혁)" },
+      { rank: 2, gameName: "T1 Gumayusi", tagLine: "KR1", tier: "GRANDMASTER", tierRank: "", points: 987, gameType: "lol", label: "서울과학고등학교", isCelebrity: true, celebrityName: "Gumayusi (이민형)" },
+      { rank: 3, gameName: "Deft", tagLine: "KR1", tier: "GRANDMASTER", tierRank: "", points: 845, gameType: "lol", label: "마포고등학교", isCelebrity: true, celebrityName: "Deft (김혁규)" },
+      { rank: 4, gameName: "Chovy", tagLine: "KR1", tier: "MASTER", tierRank: "", points: 523, gameType: "lol", label: "가좌고등학교", isCelebrity: true, celebrityName: "Chovy (정지훈)" },
+      { rank: 5, gameName: "Ruler", tagLine: "KR1", tier: "MASTER", tierRank: "", points: 412, gameType: "lol", label: "안양공업고등학교", isCelebrity: true, celebrityName: "Ruler (박재혁)" },
     ],
     valorant: [
       { rank: 1, gameName: "MaKo", tagLine: "KR1", tier: "Radiant", tierRank: "", points: 487, gameType: "valorant", label: "서울과학고등학교" },
@@ -128,11 +131,6 @@ export function LeaderboardPreview() {
         {/* Entries */}
         <div className="divide-y divide-white/5 relative">
           {entries.map((entry) => {
-            const tierColor = TIER_COLORS[entry.tier] ?? "#888";
-            const tierKorean = gameType === "lol"
-              ? LOL_TIER_KOREAN[entry.tier] ?? entry.tier
-              : VALORANT_TIER_KOREAN[entry.tier] ?? entry.tier;
-
             return (
               <div
                 key={entry.rank}
@@ -151,8 +149,15 @@ export function LeaderboardPreview() {
                 <div className="min-w-0">
                   <span className="text-sm font-medium truncate block">
                     {entry.gameName}
-                    <span className="text-muted-foreground/50 text-xs ml-1">#{entry.tagLine}</span>
+                    {entry.isCelebrity ? (
+                      <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">PRO</span>
+                    ) : (
+                      <span className="text-muted-foreground/50 text-xs ml-1">#{entry.tagLine}</span>
+                    )}
                   </span>
+                  {entry.isCelebrity && entry.celebrityName && (
+                    <span className="text-xs text-yellow-400/70 truncate block">{entry.celebrityName}</span>
+                  )}
                 </div>
 
                 {/* School / Region */}
@@ -162,16 +167,7 @@ export function LeaderboardPreview() {
 
                 {/* Tier */}
                 <div className="text-right">
-                  <span
-                    className="text-xs font-medium px-2 py-0.5 rounded-md inline-block"
-                    style={{
-                      color: tierColor,
-                      backgroundColor: `${tierColor}15`,
-                      border: `1px solid ${tierColor}25`,
-                    }}
-                  >
-                    {tierKorean} {entry.tierRank}
-                  </span>
+                  <TierBadge gameType={gameType} tier={entry.tier} rank={entry.tierRank} />
                 </div>
               </div>
             );

@@ -3,7 +3,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { RankingResult } from "@/types/ranking";
-import { GAME_LABELS, VALORANT_TIER_KOREAN, LOL_TIER_KOREAN } from "@/types/game";
+import { GAME_LABELS } from "@/types/game";
+import { TierBadge } from "./tier-badge";
 
 const TIER_COLORS: Record<string, string> = {
   Iron: "text-gray-400", Bronze: "text-amber-700", Silver: "text-gray-300", Gold: "text-yellow-400",
@@ -21,9 +22,6 @@ interface RankingCardProps {
 export function RankingCard({ ranking }: RankingCardProps) {
   const { myRank, organizationName, totalParticipants, gameType } = ranking;
   const tierColor = TIER_COLORS[myRank.tier] ?? "text-white";
-  const tierKorean = gameType === "valorant"
-    ? VALORANT_TIER_KOREAN[myRank.tier]
-    : LOL_TIER_KOREAN[myRank.tier];
   const isTop3 = myRank.rank <= 3;
   const percentile = Math.round((myRank.rank / totalParticipants) * 100);
 
@@ -54,9 +52,11 @@ export function RankingCard({ ranking }: RankingCardProps) {
         <div className="inline-flex items-center gap-3 bg-white/5 rounded-xl px-6 py-3">
           <div className="text-left">
             <div className="font-bold text-lg">{myRank.gameName}</div>
-            <div className={`text-sm ${tierColor}`}>
-              {tierKorean ?? myRank.tier} {myRank.tierRank} · {myRank.points}
-              {gameType === "valorant" ? "RR" : "LP"}
+            <div className="flex items-center gap-2">
+              <TierBadge gameType={gameType} tier={myRank.tier} rank={myRank.tierRank} size="md" />
+              <span className={`text-sm ${tierColor}`}>
+                {myRank.points}{gameType === "valorant" ? "RR" : "LP"}
+              </span>
             </div>
           </div>
         </div>

@@ -93,3 +93,38 @@ export const LOL_TIER_KOREAN: Record<string, string> = {
 };
 
 export const LOL_RANKS = ["IV", "III", "II", "I"] as const;
+
+// LoL Tier Emblem Images (CommunityDragon CDN — SVG mini crests)
+const LOL_CDN = "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-crests";
+export const LOL_TIER_ICONS: Record<string, string> = {
+  IRON: `${LOL_CDN}/iron.svg`,
+  BRONZE: `${LOL_CDN}/bronze.svg`,
+  SILVER: `${LOL_CDN}/silver.svg`,
+  GOLD: `${LOL_CDN}/gold.svg`,
+  PLATINUM: `${LOL_CDN}/platinum.svg`,
+  EMERALD: `${LOL_CDN}/emerald.svg`,
+  DIAMOND: `${LOL_CDN}/diamond.svg`,
+  MASTER: `${LOL_CDN}/master.svg`,
+  GRANDMASTER: `${LOL_CDN}/grandmaster.svg`,
+  CHALLENGER: `${LOL_CDN}/challenger.svg`,
+};
+
+// Valorant Tier Icons (valorant-api.com)
+const VAL_CDN = "https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04";
+export const VALORANT_TIER_ICONS: Record<string, string> = {
+  Iron: `${VAL_CDN}/3/largeicon.png`,
+  Bronze: `${VAL_CDN}/6/largeicon.png`,
+  Silver: `${VAL_CDN}/9/largeicon.png`,
+  Gold: `${VAL_CDN}/12/largeicon.png`,
+  Platinum: `${VAL_CDN}/15/largeicon.png`,
+  Diamond: `${VAL_CDN}/18/largeicon.png`,
+  Ascendant: `${VAL_CDN}/21/largeicon.png`,
+  Immortal: `${VAL_CDN}/24/largeicon.png`,
+  Radiant: `${VAL_CDN}/27/largeicon.png`,
+};
+
+/** Get tier icon URL for a given game type and tier name */
+export function getTierIconUrl(gameType: GameType, tier: string): string | null {
+  if (gameType === "lol") return LOL_TIER_ICONS[tier] ?? null;
+  return VALORANT_TIER_ICONS[tier] ?? null;
+}

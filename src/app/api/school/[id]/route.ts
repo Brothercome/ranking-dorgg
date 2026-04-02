@@ -84,7 +84,7 @@ export async function GET(
       // Get paginated leaderboard
       const { data: members } = await supabase
         .from("game_accounts")
-        .select("id, game_name, tag_line, current_tier, current_rank, current_points, tier_numeric")
+        .select("id, game_name, tag_line, current_tier, current_rank, current_points, tier_numeric, is_celebrity, celebrity_name, celebrity_category")
         .eq("game_type", gameType)
         .in("id", accountIds)
         .order("tier_numeric", { ascending: false })
@@ -99,6 +99,9 @@ export async function GET(
         tierRank: m.current_rank ?? "",
         points: m.current_points ?? 0,
         tierNumeric: m.tier_numeric ?? 0,
+        isCelebrity: m.is_celebrity ?? false,
+        celebrityName: m.celebrity_name ?? null,
+        celebrityCategory: m.celebrity_category ?? null,
       }));
 
       hasMore = offset + limit < totalMembers;
