@@ -6,10 +6,10 @@ import Image from "next/image";
 export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/60 backdrop-blur-xl">
-      <div className="flex h-14 items-center justify-between px-4 max-w-5xl mx-auto">
+      <div className="flex h-16 items-center justify-between px-4 max-w-5xl mx-auto">
         {/* Logo - Home */}
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.svg" alt="도르" width={48} height={48} />
+          <Image src="/logo.svg" alt="도르" width={80} height={80} />
         </Link>
 
         {/* Nav */}

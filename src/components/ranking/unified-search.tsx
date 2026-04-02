@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import type { GameType } from "@/types/game";
 import { GAME_LABELS } from "@/types/game";
 
@@ -14,168 +13,195 @@ interface SchoolResult {
   memberCount: number;
 }
 
-interface SearchState {
+interface GameResult {
+  gameAccountId: string;
   gameName: string;
   tagLine: string;
+  tier: string;
+  rank: string;
+  points: number;
   gameType: GameType;
-  schoolQuery: string;
-  schools: SchoolResult[];
-  selectedSchool: SchoolResult | null;
-  isSearchingSchool: boolean;
-  isSubmitting: boolean;
-  error: string;
-  showSchoolDropdown: boolean;
 }
+
+type SuggestionItem =
+  | { type: "school"; data: SchoolResult }
+  | { type: "game"; data: GameResult }
+  | { type: "hint"; text: string };
 
 export function UnifiedSearch() {
   const router = useRouter();
-  const schoolInputRef = useRef<HTMLInputElement>(null);
-  const schoolDropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>(null);
 
-  const [state, setState] = useState<SearchState>({
-    gameName: "",
-    tagLine: "",
-    gameType: "lol",
-    schoolQuery: "",
-    schools: [],
-    selectedSchool: null,
-    isSearchingSchool: false,
-    isSubmitting: false,
-    error: "",
-    showSchoolDropdown: false,
-  });
+  const [query, setQuery] = useState("");
+  const [gameType, setGameType] = useState<GameType>("lol");
+  const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<GameResult | null>(null);
+  const [selectedSchool, setSelectedSchool] = useState<SchoolResult | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   // Close dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (
-        schoolDropdownRef.current &&
-        !schoolDropdownRef.current.contains(e.target as Node) &&
-        schoolInputRef.current &&
-        !schoolInputRef.current.contains(e.target as Node)
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(e.target as Node)
       ) {
-        setState((s) => ({ ...s, showSchoolDropdown: false }));
+        setShowDropdown(false);
       }
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const searchSchools = useCallback(async (query: string) => {
-    if (query.length < 2) {
-      setState((s) => ({ ...s, schools: [], isSearchingSchool: false }));
-      return;
-    }
-
-    setState((s) => ({ ...s, isSearchingSchool: true }));
-    try {
-      const res = await fetch(`/api/org/search?q=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      if (data.success) {
-        setState((s) => ({
-          ...s,
-          schools: data.data.slice(0, 10),
-          isSearchingSchool: false,
-          showSchoolDropdown: true,
-        }));
+  const search = useCallback(
+    async (q: string) => {
+      if (q.length < 2) {
+        setSuggestions([]);
+        return;
       }
-    } catch {
-      setState((s) => ({ ...s, isSearchingSchool: false }));
-    }
-  }, []);
 
-  const handleSchoolInput = (value: string) => {
-    setState((s) => ({
-      ...s,
-      schoolQuery: value,
-      selectedSchool: null,
-      showSchoolDropdown: value.length >= 2,
-    }));
+      setIsLoading(true);
+      const items: SuggestionItem[] = [];
+
+      // Check if it looks like a game ID (contains #)
+      const hasHash = q.includes("#");
+      const isKorean = /[가-힣]/.test(q) && !hasHash;
+
+      // Search schools if it looks like Korean text
+      if (isKorean || (!hasHash && q.length >= 2)) {
+        try {
+          const res = await fetch(`/api/org/search?q=${encodeURIComponent(q)}`);
+          const data = await res.json();
+          if (data.success && data.data.length > 0) {
+            data.data.slice(0, 5).forEach((school: SchoolResult) => {
+              items.push({ type: "school", data: school });
+            });
+          }
+        } catch {
+          // silent
+        }
+      }
+
+      // Search game ID if it contains # or looks like a game name
+      if (hasHash) {
+        const parts = q.split("#");
+        const gameName = parts[0].trim();
+        const tagLine = parts[1]?.trim();
+
+        if (gameName && tagLine && tagLine.length >= 1) {
+          try {
+            const res = await fetch(`/api/search/${gameType}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ gameName, tagLine }),
+            });
+            const data = await res.json();
+            if (data.success) {
+              items.unshift({ type: "game", data: data.data });
+            }
+          } catch {
+            // silent
+          }
+        } else {
+          items.push({ type: "hint", text: `"${gameName}#태그" 형식으로 입력하세요` });
+        }
+      }
+
+      // If no results and not a game ID format
+      if (items.length === 0 && !hasHash && q.length >= 2) {
+        items.push({ type: "hint", text: `게임 ID는 "닉네임#태그" 형식으로 입력하세요` });
+      }
+
+      setSuggestions(items);
+      setShowDropdown(items.length > 0);
+      setIsLoading(false);
+    },
+    [gameType]
+  );
+
+  const handleInput = (value: string) => {
+    setQuery(value);
+    setError("");
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => searchSchools(value), 300);
+    debounceRef.current = setTimeout(() => search(value), 400);
+  };
+
+  const selectGame = (game: GameResult) => {
+    setSelectedGame(game);
+    setQuery("");
+    setSuggestions([]);
+    setShowDropdown(false);
+    // Focus back on input for school search
+    setTimeout(() => inputRef.current?.focus(), 100);
   };
 
   const selectSchool = (school: SchoolResult) => {
-    setState((s) => ({
-      ...s,
-      selectedSchool: school,
-      schoolQuery: school.name,
-      showSchoolDropdown: false,
-    }));
+    setSelectedSchool(school);
+    setShowDropdown(false);
+
+    // If game already selected, auto submit
+    if (selectedGame) {
+      submitRanking(selectedGame, school);
+    } else {
+      setQuery("");
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
   };
 
-  const handleSubmit = async () => {
-    const { gameName, tagLine, gameType, selectedSchool } = state;
-
-    if (!gameName || !tagLine) {
-      setState((s) => ({ ...s, error: "게임 닉네임#태그를 입력해주세요" }));
-      return;
-    }
-    if (!selectedSchool) {
-      setState((s) => ({ ...s, error: "학교를 선택해주세요" }));
-      return;
-    }
-
-    setState((s) => ({ ...s, isSubmitting: true, error: "" }));
+  const submitRanking = async (game: GameResult, school: SchoolResult) => {
+    setIsSubmitting(true);
+    setError("");
 
     try {
-      // Step 1: Search game account
-      const searchRes = await fetch(`/api/search/${gameType}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gameName, tagLine }),
-      });
-      const searchData = await searchRes.json();
-
-      if (!searchData.success) {
-        setState((s) => ({
-          ...s,
-          isSubmitting: false,
-          error: searchData.error || "플레이어를 찾을 수 없습니다",
-        }));
-        return;
-      }
-
-      // Step 2: Register to school and get ranking
-      const rankRes = await fetch(`/api/rank/${selectedSchool.id}`, {
+      const res = await fetch(`/api/rank/${school.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          gameAccountId: searchData.data.gameAccountId,
-          gameType,
+          gameAccountId: game.gameAccountId,
+          gameType: game.gameType,
         }),
       });
-      const rankData = await rankRes.json();
+      const data = await res.json();
 
-      if (!rankData.success) {
-        setState((s) => ({
-          ...s,
-          isSubmitting: false,
-          error: rankData.error || "랭킹 계산에 실패했습니다",
-        }));
+      if (!data.success) {
+        setError(data.error || "랭킹 계산에 실패했습니다");
+        setIsSubmitting(false);
         return;
       }
 
-      // Navigate to result
-      router.push(
-        `/rank/${searchData.data.gameAccountId}?org=${selectedSchool.id}&game=${gameType}`
-      );
+      router.push(`/rank/${game.gameAccountId}?org=${school.id}&game=${game.gameType}`);
     } catch {
-      setState((s) => ({
-        ...s,
-        isSubmitting: false,
-        error: "네트워크 오류가 발생했습니다",
-      }));
+      setError("네트워크 오류가 발생했습니다");
+      setIsSubmitting(false);
     }
   };
 
-  const handleGameIdKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      schoolInputRef.current?.focus();
+  const handleSubmit = () => {
+    if (selectedGame && selectedSchool) {
+      submitRanking(selectedGame, selectedSchool);
+    } else if (!selectedGame) {
+      setError("게임 아이디를 먼저 검색하세요 (닉네임#태그)");
+    } else {
+      setError("학교를 선택하세요");
     }
   };
+
+  const clearSelection = (type: "game" | "school") => {
+    if (type === "game") setSelectedGame(null);
+    if (type === "school") setSelectedSchool(null);
+  };
+
+  const placeholder = !selectedGame
+    ? "게임 아이디 검색 (예: Hide on bush#KR1)"
+    : "학교 검색 (예: 서울고)";
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -184,9 +210,13 @@ export function UnifiedSearch() {
         {(["lol", "valorant"] as GameType[]).map((game) => (
           <button
             key={game}
-            onClick={() => setState((s) => ({ ...s, gameType: game }))}
+            onClick={() => {
+              setGameType(game);
+              setSelectedGame(null);
+              setQuery("");
+            }}
             className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
-              state.gameType === game
+              gameType === game
                 ? "bg-white/10 text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
             }`}
@@ -196,123 +226,166 @@ export function UnifiedSearch() {
         ))}
       </div>
 
-      {/* Search Box */}
-      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-lg">
-        <div className="flex flex-col sm:flex-row gap-2">
-          {/* Game ID Input */}
-          <div className="flex-1 flex items-center gap-1 bg-white/5 rounded-xl px-4 py-3">
-            <span className="text-muted-foreground text-sm shrink-0">
-              {state.gameType === "lol" ? "🎮" : "🔫"}
-            </span>
-            <input
-              type="text"
-              placeholder="닉네임"
-              value={state.gameName}
-              onChange={(e) =>
-                setState((s) => ({ ...s, gameName: e.target.value, error: "" }))
-              }
-              onKeyDown={(e) => {
-                if (e.key === "#") {
-                  e.preventDefault();
-                  document.getElementById("tag-input")?.focus();
-                }
-              }}
-              className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground"
-            />
-            <span className="text-muted-foreground font-bold">#</span>
-            <input
-              id="tag-input"
-              type="text"
-              placeholder="태그"
-              value={state.tagLine}
-              onChange={(e) =>
-                setState((s) => ({ ...s, tagLine: e.target.value, error: "" }))
-              }
-              onKeyDown={handleGameIdKeyDown}
-              className="w-20 bg-transparent outline-none text-sm placeholder:text-muted-foreground"
-            />
-          </div>
-
-          {/* School Input */}
-          <div className="relative flex-1">
-            <div className="flex items-center gap-1 bg-white/5 rounded-xl px-4 py-3">
-              <span className="text-muted-foreground text-sm">🏫</span>
-              <input
-                ref={schoolInputRef}
-                type="text"
-                placeholder="학교 검색"
-                value={state.schoolQuery}
-                onChange={(e) => handleSchoolInput(e.target.value)}
-                onFocus={() => {
-                  if (state.schools.length > 0) {
-                    setState((s) => ({ ...s, showSchoolDropdown: true }));
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSubmit();
-                }}
-                className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground"
-              />
-              {state.isSearchingSchool && (
-                <span className="text-xs text-muted-foreground animate-pulse">검색중</span>
-              )}
-              {state.selectedSchool && (
-                <span className="text-xs text-green-400">✓</span>
-              )}
-            </div>
-
-            {/* School Dropdown */}
-            {state.showSchoolDropdown && state.schools.length > 0 && (
-              <div
-                ref={schoolDropdownRef}
-                className="absolute top-full left-0 right-0 mt-1 bg-card/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-xl overflow-hidden z-50"
+      {/* Selected chips */}
+      {(selectedGame || selectedSchool) && (
+        <div className="flex gap-2 mb-3 justify-center flex-wrap">
+          {selectedGame && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-sm">
+              <span className="text-green-400">🎮</span>
+              <span>{selectedGame.gameName}#{selectedGame.tagLine}</span>
+              <span className="text-xs text-muted-foreground">
+                {selectedGame.tier} {selectedGame.rank}
+              </span>
+              <button
+                onClick={() => clearSelection("game")}
+                className="ml-1 text-muted-foreground hover:text-foreground"
               >
-                {state.schools.map((school) => (
+                ✕
+              </button>
+            </span>
+          )}
+          {selectedSchool && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-sm">
+              <span className="text-blue-400">🏫</span>
+              <span>{selectedSchool.name}</span>
+              <button
+                onClick={() => clearSelection("school")}
+                className="ml-1 text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Search Box */}
+      <div className="relative">
+        <div className="flex items-center bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-4 shadow-lg gap-3">
+          <span className="text-muted-foreground">🔍</span>
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder={placeholder}
+            value={query}
+            onChange={(e) => handleInput(e.target.value)}
+            onFocus={() => {
+              if (suggestions.length > 0) setShowDropdown(true);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                if (suggestions.length > 0 && suggestions[0].type !== "hint") {
+                  const first = suggestions[0];
+                  if (first.type === "game") selectGame(first.data);
+                  else if (first.type === "school") selectSchool(first.data);
+                } else {
+                  handleSubmit();
+                }
+              }
+            }}
+            className="flex-1 bg-transparent outline-none text-base placeholder:text-muted-foreground/60"
+            autoFocus
+          />
+          {isLoading && (
+            <span className="text-xs text-muted-foreground animate-pulse">검색중...</span>
+          )}
+          {selectedGame && selectedSchool && (
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="bg-primary text-primary-foreground px-5 py-2 rounded-xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 shrink-0"
+            >
+              {isSubmitting ? "확인 중..." : "랭킹 확인"}
+            </button>
+          )}
+        </div>
+
+        {/* Dropdown */}
+        {showDropdown && (
+          <div
+            ref={dropdownRef}
+            className="absolute top-full left-0 right-0 mt-2 bg-card/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
+          >
+            {suggestions.map((item, i) => {
+              if (item.type === "hint") {
+                return (
+                  <div key={i} className="px-5 py-3 text-sm text-muted-foreground">
+                    💡 {item.text}
+                  </div>
+                );
+              }
+
+              if (item.type === "game") {
+                const g = item.data;
+                return (
                   <button
-                    key={school.id}
-                    onClick={() => selectSchool(school)}
-                    className="w-full text-left px-4 py-3 hover:bg-white/[0.05] transition-colors border-b border-white/5 last:border-0"
+                    key={`game-${g.gameAccountId}`}
+                    onClick={() => selectGame(g)}
+                    className="w-full text-left px-5 py-3.5 hover:bg-white/[0.05] transition-colors border-b border-white/5"
                   >
                     <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-sm font-medium">{school.name}</span>
-                        <span className="text-xs text-muted-foreground ml-2">
-                          {school.region}
-                        </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-base">🎮</span>
+                        <div>
+                          <span className="text-sm font-medium">
+                            {g.gameName}#{g.tagLine}
+                          </span>
+                          <span className="text-xs text-muted-foreground ml-2">
+                            {GAME_LABELS[g.gameType]}
+                          </span>
+                        </div>
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        {school.memberCount}명
+                        {g.tier} {g.rank} · {g.points}
+                        {g.gameType === "lol" ? "LP" : "RR"}
                       </span>
                     </div>
                   </button>
-                ))}
-              </div>
-            )}
-          </div>
+                );
+              }
 
-          {/* Submit Button */}
-          <button
-            onClick={handleSubmit}
-            disabled={state.isSubmitting}
-            className="bg-primary text-primary-foreground px-6 py-3 rounded-xl font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 shrink-0"
-          >
-            {state.isSubmitting ? (
-              <span className="animate-pulse">검색 중...</span>
-            ) : (
-              "랭킹 확인"
-            )}
-          </button>
-        </div>
+              if (item.type === "school") {
+                const s = item.data;
+                return (
+                  <button
+                    key={`school-${s.id}`}
+                    onClick={() => selectSchool(s)}
+                    className="w-full text-left px-5 py-3.5 hover:bg-white/[0.05] transition-colors border-b border-white/5 last:border-0"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-base">🏫</span>
+                        <div>
+                          <span className="text-sm font-medium">{s.name}</span>
+                          <span className="text-xs text-muted-foreground ml-2">
+                            {s.region}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {s.memberCount}명
+                      </span>
+                    </div>
+                  </button>
+                );
+              }
+
+              return null;
+            })}
+          </div>
+        )}
       </div>
 
       {/* Error */}
-      {state.error && (
-        <p className="text-center text-sm text-destructive mt-3">{state.error}</p>
+      {error && (
+        <p className="text-center text-sm text-destructive mt-3">{error}</p>
       )}
 
       {/* Hint */}
-      <p className="text-center text-xs text-muted-foreground mt-4">
-        Riot ID 형식으로 입력하세요 (예: Hide on bush#KR1)
+      <p className="text-center text-xs text-muted-foreground/60 mt-4">
+        {!selectedGame
+          ? "닉네임#태그로 게임 아이디를 검색하거나, 학교 이름을 입력하세요"
+          : "학교 이름을 입력하면 우리 학교 랭킹을 확인할 수 있어요"}
       </p>
     </div>
   );
