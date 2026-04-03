@@ -35,21 +35,6 @@ export default function HomePage() {
       {/* Leaderboard */}
       <LeaderboardPreview />
 
-      {/* Stats */}
-      <div className="flex gap-8 text-center text-muted-foreground mt-16 mb-8">
-        <div className="flex flex-col items-center gap-1 px-6 py-4 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/10">
-          <div className="text-2xl">🎮</div>
-          <div className="text-xs">2개 게임</div>
-        </div>
-        <div className="flex flex-col items-center gap-1 px-6 py-4 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/10">
-          <div className="text-2xl">🏫</div>
-          <div className="text-xs">전국 학교</div>
-        </div>
-        <div className="flex flex-col items-center gap-1 px-6 py-4 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/10">
-          <div className="text-2xl">📱</div>
-          <div className="text-xs">SNS 공유</div>
-        </div>
-      </div>
     </main>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { GameType } from "@/types/game";
 import { GAME_LABELS, LOL_TIER_KOREAN, VALORANT_TIER_KOREAN } from "@/types/game";
+import { KoreaMap } from "./korea-map";
 
 const TIER_COLORS: Record<string, string> = {
   IRON: "#5e5e5e", BRONZE: "#a8713a", SILVER: "#b4b4b4", GOLD: "#e8c252",
@@ -174,7 +175,17 @@ export function RegionLeaderboard({ region }: RegionLeaderboardProps) {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6">
+    <div className="w-full max-w-5xl mx-auto">
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Map */}
+        <div className="lg:w-[320px] shrink-0">
+          <KoreaMap
+            selectedRegion={region}
+            onSelectRegion={(r) => router.push(`/region/${encodeURIComponent(r)}`)}
+          />
+        </div>
+        {/* Leaderboard */}
+        <div className="flex-1 min-w-0 space-y-6">
       {/* Header */}
       <div className="text-center space-y-3">
         <h1 className="text-2xl font-bold">📍 {region}</h1>
@@ -503,6 +514,8 @@ export function RegionLeaderboard({ region }: RegionLeaderboardProps) {
           {region} 지역 · {totalSchools}개 학교 · {totalPlayers}명의 {GAME_LABELS[gameType]} 플레이어
         </p>
       )}
+        </div>
+      </div>
     </div>
   );
 }
