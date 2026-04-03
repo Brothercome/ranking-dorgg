@@ -130,7 +130,16 @@ export function LeaderboardPreview() {
               {MOCK_SCHOOLS[gameType].map((entry) => (
                 <button
                   key={entry.rank}
-                  onClick={() => entry.id ? router.push(`/school/${entry.id}`) : null}
+                  onClick={async () => {
+                    // Search for school by name and navigate
+                    try {
+                      const res = await fetch(`/api/org/search?q=${encodeURIComponent(entry.name)}`);
+                      const data = await res.json();
+                      if (data.success && data.data.length > 0) {
+                        router.push(`/school/${data.data[0].id}`);
+                      }
+                    } catch { /* silent */ }
+                  }}
                   className="w-full grid grid-cols-[40px_1fr_80px_60px_140px] gap-2 items-center px-5 py-3 hover:bg-white/[0.03] transition-colors text-left"
                 >
                   <div className="text-center">
