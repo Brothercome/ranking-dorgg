@@ -37,27 +37,21 @@ export async function GET(
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") ?? "20", 10)));
     const offset = (page - 1) * limit;
 
-    // Get school info
-    const { data: school, error: schoolError } = await supabase
-      .from("organizations")
-      .select("*")
-      .eq("id", id)
-      .single();
+    // Fetch school + linked accounts in parallel
+    const [schoolRes, linksRes] = await Promise.all([
+      supabase.from("organizations").select("*").eq("id", id).single(),
+      supabase.from("account_organizations").select("game_account_id").eq("organization_id", id),
+    ]);
 
-    if (schoolError || !school) {
+    if (schoolRes.error || !schoolRes.data) {
       return NextResponse.json(
         { success: false, error: "학교를 찾을 수 없습니다" },
         { status: 404 }
       );
     }
 
-    // Get linked account IDs for this org
-    const { data: links } = await supabase
-      .from("account_organizations")
-      .select("game_account_id")
-      .eq("organization_id", id);
-
-    const accountIds = (links ?? []).map((l) => l.game_account_id);
+    const school = schoolRes.data;
+    const accountIds = (linksRes.data ?? []).map((l) => l.game_account_id);
 
     let leaderboard: Array<{
       rank: number;
@@ -71,27 +65,33 @@ export async function GET(
     }> = [];
     let totalMembers = 0;
     let hasMore = false;
+    let schoolScore = 0;
 
     if (accountIds.length > 0) {
-      // Get total count for this game type
-      const { count } = await supabase
-        .from("game_accounts")
-        .select("id", { count: "exact", head: true })
-        .eq("game_type", gameType)
-        .in("id", accountIds);
+      // Fetch count + leaderboard + all tiers in parallel
+      const [countRes, membersRes, allTiersRes] = await Promise.all([
+        supabase
+          .from("game_accounts")
+          .select("id", { count: "exact", head: true })
+          .eq("game_type", gameType)
+          .in("id", accountIds),
+        supabase
+          .from("game_accounts")
+          .select("id, game_name, tag_line, current_tier, current_rank, current_points, tier_numeric")
+          .eq("game_type", gameType)
+          .in("id", accountIds)
+          .order("tier_numeric", { ascending: false })
+          .range(offset, offset + limit - 1),
+        supabase
+          .from("game_accounts")
+          .select("current_tier")
+          .eq("game_type", gameType)
+          .in("id", accountIds),
+      ]);
 
-      totalMembers = count ?? 0;
+      totalMembers = countRes.count ?? 0;
 
-      // Get paginated leaderboard
-      const { data: members } = await supabase
-        .from("game_accounts")
-        .select("id, game_name, tag_line, current_tier, current_rank, current_points, tier_numeric, is_celebrity, celebrity_name, celebrity_category")
-        .eq("game_type", gameType)
-        .in("id", accountIds)
-        .order("tier_numeric", { ascending: false })
-        .range(offset, offset + limit - 1);
-
-      leaderboard = (members ?? []).map((m, idx) => ({
+      leaderboard = (membersRes.data ?? []).map((m, idx) => ({
         rank: offset + idx + 1,
         gameAccountId: m.id,
         gameName: m.game_name,
@@ -100,70 +100,38 @@ export async function GET(
         tierRank: m.current_rank ?? "",
         points: m.current_points ?? 0,
         tierNumeric: m.tier_numeric ?? 0,
-        isCelebrity: m.is_celebrity ?? false,
-        celebrityName: m.celebrity_name ?? null,
-        celebrityCategory: m.celebrity_category ?? null,
       }));
 
       hasMore = offset + limit < totalMembers;
-    }
 
-    // School score: sum of tier scores for all members
-    let schoolScore = 0;
-    if (accountIds.length > 0) {
-      const { data: allMembers } = await supabase
-        .from("game_accounts")
-        .select("current_tier")
-        .eq("game_type", gameType)
-        .in("id", accountIds);
-
-      schoolScore = (allMembers ?? []).reduce(
+      schoolScore = (allTiersRes.data ?? []).reduce(
         (sum, m) => sum + getTierScore(gameType, m.current_tier ?? ""),
         0
       );
     }
 
-    // Region ranking: rank schools by tier score sum
-    let regionRank: number | null = null;
-    let regionTotal: number | null = null;
+    // Region ranking: simple count of schools with more members (no N+1 loop)
+    let regionRanking: { rank: number; total: number; region: string } | null = null;
 
-    if (school.region_sido) {
-      const { data: regionOrgs } = await supabase
-        .from("organizations")
-        .select("id, member_count")
-        .eq("region_sido", school.region_sido)
-        .gt("member_count", 0);
+    if (school.region_sido && school.member_count > 0) {
+      const [higherRes, totalRes] = await Promise.all([
+        supabase
+          .from("organizations")
+          .select("id", { count: "exact", head: true })
+          .eq("region_sido", school.region_sido)
+          .gt("member_count", school.member_count),
+        supabase
+          .from("organizations")
+          .select("id", { count: "exact", head: true })
+          .eq("region_sido", school.region_sido)
+          .gt("member_count", 0),
+      ]);
 
-      if (regionOrgs && regionOrgs.length > 0) {
-        const orgScores: Array<{ orgId: string; score: number }> = [];
-
-        for (const org of regionOrgs) {
-          const { data: orgLinks } = await supabase
-            .from("account_organizations")
-            .select("game_account_id")
-            .eq("organization_id", org.id);
-
-          if (orgLinks && orgLinks.length > 0) {
-            const orgAccountIds = orgLinks.map((l) => l.game_account_id);
-            const { data: orgMembers } = await supabase
-              .from("game_accounts")
-              .select("current_tier")
-              .eq("game_type", gameType)
-              .in("id", orgAccountIds);
-
-            const score = (orgMembers ?? []).reduce(
-              (sum, m) => sum + getTierScore(gameType, m.current_tier ?? ""),
-              0
-            );
-            if (score > 0) orgScores.push({ orgId: org.id, score });
-          }
-        }
-
-        orgScores.sort((a, b) => b.score - a.score);
-        const myIndex = orgScores.findIndex((o) => o.orgId === id);
-        regionRank = myIndex >= 0 ? myIndex + 1 : null;
-        regionTotal = orgScores.length;
-      }
+      regionRanking = {
+        rank: (higherRes.count ?? 0) + 1,
+        total: totalRes.count ?? 0,
+        region: school.region_sido,
+      };
     }
 
     return NextResponse.json({
@@ -184,11 +152,7 @@ export async function GET(
         hasMore,
         page,
         limit,
-        regionRanking: regionRank !== null ? {
-          rank: regionRank,
-          total: regionTotal,
-          region: school.region_sido,
-        } : null,
+        regionRanking,
       },
     });
   } catch (error) {
