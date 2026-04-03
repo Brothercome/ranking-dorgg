@@ -39,14 +39,20 @@ export async function GET(
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") ?? "20", 10)));
     const offset = (page - 1) * limit;
 
-    // Get all orgs in this region with members
-    const { data: regionOrgs } = await supabase
-      .from("organizations")
-      .select("id, name, member_count")
-      .eq("region_sido", sido)
-      .gt("member_count", 0);
+    // Step 1: Get all orgs + all links in parallel
+    const [orgsRes, allLinksRes] = await Promise.all([
+      supabase
+        .from("organizations")
+        .select("id, name, member_count")
+        .eq("region_sido", sido)
+        .gt("member_count", 0),
+      supabase
+        .from("account_organizations")
+        .select("game_account_id, organization_id"),
+    ]);
 
-    if (!regionOrgs || regionOrgs.length === 0) {
+    const regionOrgs = orgsRes.data ?? [];
+    if (regionOrgs.length === 0) {
       return NextResponse.json({
         success: true,
         data: {
@@ -62,99 +68,17 @@ export async function GET(
       });
     }
 
-    const orgIds = regionOrgs.map((o) => o.id);
+    const orgIdSet = new Set(regionOrgs.map((o) => o.id));
+    const links = (allLinksRes.data ?? []).filter((l) => orgIdSet.has(l.organization_id));
+    const allAccountIds = [...new Set(links.map((l) => l.game_account_id))];
 
-    // Get all account links for orgs in this region
-    const { data: allLinks } = await supabase
-      .from("account_organizations")
-      .select("game_account_id, organization_id")
-      .in("organization_id", orgIds);
-
-    const links = allLinks ?? [];
-    const allAccountIds = links.map((l) => l.game_account_id);
-
-    // Get total player count for this game type
-    let totalPlayers = 0;
-    if (allAccountIds.length > 0) {
-      const { count } = await supabase
-        .from("game_accounts")
-        .select("id", { count: "exact", head: true })
-        .eq("game_type", gameType)
-        .in("id", allAccountIds);
-      totalPlayers = count ?? 0;
-    }
-
-    if (tab === "schools") {
-      // Calculate avg tier_numeric for each school
-      const schoolScores: Array<{
-        orgId: string;
-        name: string;
-        avgTier: number;
-        memberCount: number;
-      }> = [];
-
-      for (const org of regionOrgs) {
-        const orgAccountIds = links
-          .filter((l) => l.organization_id === org.id)
-          .map((l) => l.game_account_id);
-
-        if (orgAccountIds.length === 0) continue;
-
-        const { data: members } = await supabase
-          .from("game_accounts")
-          .select("tier_numeric")
-          .eq("game_type", gameType)
-          .in("id", orgAccountIds);
-
-        if (members && members.length > 0) {
-          const avg =
-            members.reduce((sum, m) => sum + (m.tier_numeric ?? 0), 0) /
-            members.length;
-          schoolScores.push({
-            orgId: org.id,
-            name: org.name,
-            avgTier: avg,
-            memberCount: members.length,
-          });
-        }
-      }
-
-      // Sort by avgTier descending
-      schoolScores.sort((a, b) => b.avgTier - a.avgTier);
-
-      const totalSchools = schoolScores.length;
-      const paginated = schoolScores.slice(offset, offset + limit);
-      const hasMore = offset + limit < totalSchools;
-
-      const schoolRankings = paginated.map((s, idx) => ({
-        rank: offset + idx + 1,
-        schoolId: s.orgId,
-        schoolName: s.name,
-        avgTier: Math.round(s.avgTier * 100) / 100,
-        memberCount: s.memberCount,
-      }));
-
-      return NextResponse.json({
-        success: true,
-        data: {
-          region: sido,
-          schoolRankings,
-          totalSchools,
-          totalPlayers,
-          hasMore,
-          page,
-          limit,
-        },
-      });
-    }
-
-    // tab === "players"
     if (allAccountIds.length === 0) {
       return NextResponse.json({
         success: true,
         data: {
           region: sido,
-          playerRankings: [],
+          schoolRankings: tab === "schools" ? [] : undefined,
+          playerRankings: tab === "players" ? [] : undefined,
           totalSchools: regionOrgs.length,
           totalPlayers: 0,
           hasMore: false,
@@ -164,45 +88,102 @@ export async function GET(
       });
     }
 
-    const { data: players } = await supabase
+    // Step 2: Get ALL game accounts for this region + game type in ONE query
+    const { data: allAccounts } = await supabase
       .from("game_accounts")
       .select("id, game_name, tag_line, current_tier, current_rank, current_points, tier_numeric")
       .eq("game_type", gameType)
       .in("id", allAccountIds)
-      .order("tier_numeric", { ascending: false })
-      .range(offset, offset + limit - 1);
+      .order("tier_numeric", { ascending: false });
 
-    // Build a map from account_id -> org name
+    const accounts = allAccounts ?? [];
+    const totalPlayers = accounts.length;
+
+    // Build account→org map
     const accountOrgMap = new Map<string, string>();
+    const accountOrgIdMap = new Map<string, string>();
     for (const link of links) {
       const org = regionOrgs.find((o) => o.id === link.organization_id);
       if (org) {
         accountOrgMap.set(link.game_account_id, org.name);
+        accountOrgIdMap.set(link.game_account_id, org.id);
       }
     }
 
-    const playerRankings = (players ?? []).map((p, idx) => ({
-      rank: offset + idx + 1,
-      gameAccountId: p.id,
-      gameName: p.game_name,
-      tagLine: p.tag_line,
-      tier: p.current_tier ?? "UNRANKED",
-      tierRank: p.current_rank ?? "",
-      points: p.current_points ?? 0,
-      tierNumeric: p.tier_numeric ?? 0,
-      schoolName: accountOrgMap.get(p.id) ?? "",
-    }));
+    if (tab === "schools") {
+      // Group accounts by org, calculate avg tier in memory
+      const orgScores = new Map<string, { name: string; total: number; count: number }>();
 
-    const hasMore = offset + limit < totalPlayers;
+      for (const account of accounts) {
+        const orgId = accountOrgIdMap.get(account.id);
+        if (!orgId) continue;
+        const existing = orgScores.get(orgId);
+        if (existing) {
+          existing.total += account.tier_numeric ?? 0;
+          existing.count++;
+        } else {
+          const org = regionOrgs.find((o) => o.id === orgId);
+          orgScores.set(orgId, {
+            name: org?.name ?? "",
+            total: account.tier_numeric ?? 0,
+            count: 1,
+          });
+        }
+      }
+
+      const sorted = Array.from(orgScores.entries())
+        .map(([orgId, s]) => ({
+          orgId,
+          name: s.name,
+          avgTier: s.total / s.count,
+          memberCount: s.count,
+        }))
+        .sort((a, b) => b.avgTier - a.avgTier);
+
+      const totalSchools = sorted.length;
+      const paginated = sorted.slice(offset, offset + limit);
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          region: sido,
+          schoolRankings: paginated.map((s, idx) => ({
+            rank: offset + idx + 1,
+            schoolId: s.orgId,
+            schoolName: s.name,
+            avgTier: Math.round(s.avgTier * 100) / 100,
+            memberCount: s.memberCount,
+          })),
+          totalSchools,
+          totalPlayers,
+          hasMore: offset + limit < totalSchools,
+          page,
+          limit,
+        },
+      });
+    }
+
+    // tab === "players"
+    const paginated = accounts.slice(offset, offset + limit);
 
     return NextResponse.json({
       success: true,
       data: {
         region: sido,
-        playerRankings,
+        playerRankings: paginated.map((p, idx) => ({
+          rank: offset + idx + 1,
+          gameAccountId: p.id,
+          gameName: p.game_name,
+          tagLine: p.tag_line,
+          tier: p.current_tier ?? "UNRANKED",
+          tierRank: p.current_rank ?? "",
+          points: p.current_points ?? 0,
+          tierNumeric: p.tier_numeric ?? 0,
+          schoolName: accountOrgMap.get(p.id) ?? "",
+        })),
         totalSchools: regionOrgs.length,
         totalPlayers,
-        hasMore,
+        hasMore: offset + limit < totalPlayers,
         page,
         limit,
       },
