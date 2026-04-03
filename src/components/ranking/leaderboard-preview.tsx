@@ -31,33 +31,33 @@ const MOCK_SCHOOLS: Record<GameType, SchoolRankEntry[]> = {
   lol: [
     { rank: 1, name: "인항고등학교", region: "인천광역시", memberCount: 3, score: 205, id: "5ab8948a-2869-4268-8074-e78b9bb39aff" },
     { rank: 2, name: "마포고등학교", region: "서울특별시", memberCount: 2, score: 112, id: "5490b79c-4778-4c28-a605-2fea9402c6a7" },
-    { rank: 3, name: "가좌고등학교", region: "인천광역시", memberCount: 1, score: 25, id: "9e82fac8-19f7-482f-93cc-9bf987bb9443" },
-    { rank: 4, name: "관악고등학교", region: "서울특별시", memberCount: 1, score: 100, id: "e3440f97-708a-42db-b014-5c05f498f32e" },
-    { rank: 5, name: "안양공업고등학교", region: "경기도", memberCount: 1, score: 100, id: "dc2652ea-cc6e-451c-8d57-3a134ba2fd77" },
+    { rank: 3, name: "관악고등학교", region: "서울특별시", memberCount: 1, score: 100, id: "e3440f97-708a-42db-b014-5c05f498f32e" },
+    { rank: 4, name: "안양공업고등학교", region: "경기도", memberCount: 1, score: 100, id: "dc2652ea-cc6e-451c-8d57-3a134ba2fd77" },
+    { rank: 5, name: "가좌고등학교", region: "인천광역시", memberCount: 1, score: 25, id: "9e82fac8-19f7-482f-93cc-9bf987bb9443" },
   ],
   valorant: [
-    { rank: 1, name: "안산동산고등학교", region: "경기도", memberCount: 1, score: 5, id: "a29aa9ae-f704-41fd-a6aa-a7b2997c32c9" },
-    { rank: 2, name: "인천동산고등학교", region: "인천광역시", memberCount: 1, score: 8, id: "410309a0-52d2-4a08-9b57-d2a060def3de" },
-    { rank: 3, name: "서울과학고등학교", region: "서울특별시", memberCount: 15, score: 340 },
-    { rank: 4, name: "한국디지털미디어고", region: "경기도", memberCount: 22, score: 285 },
-    { rank: 5, name: "경기과학고등학교", region: "경기도", memberCount: 8, score: 120 },
+    { rank: 1, name: "서울과학고등학교", region: "서울특별시", memberCount: 15, score: 340 },
+    { rank: 2, name: "한국디지털미디어고", region: "경기도", memberCount: 22, score: 285 },
+    { rank: 3, name: "경기과학고등학교", region: "경기도", memberCount: 8, score: 120 },
+    { rank: 4, name: "인천동산고등학교", region: "인천광역시", memberCount: 1, score: 8, id: "410309a0-52d2-4a08-9b57-d2a060def3de" },
+    { rank: 5, name: "안산동산고등학교", region: "경기도", memberCount: 1, score: 5, id: "a29aa9ae-f704-41fd-a6aa-a7b2997c32c9" },
   ],
 };
 
 const MOCK_REGIONS: Record<GameType, RegionRankEntry[]> = {
   lol: [
-    { rank: 1, region: "인천광역시", schoolCount: 2, playerCount: 4, score: 230 },
-    { rank: 2, region: "서울특별시", schoolCount: 3, playerCount: 5, score: 237 },
+    { rank: 1, region: "서울특별시", schoolCount: 3, playerCount: 5, score: 237 },
+    { rank: 2, region: "인천광역시", schoolCount: 2, playerCount: 4, score: 230 },
     { rank: 3, region: "경기도", schoolCount: 2, playerCount: 3, score: 126 },
-    { rank: 4, region: "강원특별자치도", schoolCount: 1, playerCount: 1, score: 12 },
-    { rank: 5, region: "광주광역시", schoolCount: 1, playerCount: 1, score: 100 },
+    { rank: 4, region: "광주광역시", schoolCount: 1, playerCount: 1, score: 100 },
+    { rank: 5, region: "강원특별자치도", schoolCount: 1, playerCount: 1, score: 12 },
   ],
   valorant: [
-    { rank: 1, region: "서울특별시", schoolCount: 1, playerCount: 15, score: 340 },
-    { rank: 2, region: "경기도", schoolCount: 2, playerCount: 30, score: 410 },
-    { rank: 3, region: "인천광역시", schoolCount: 1, playerCount: 1, score: 8 },
-    { rank: 4, region: "부산광역시", schoolCount: 1, playerCount: 5, score: 45 },
-    { rank: 5, region: "대전광역시", schoolCount: 1, playerCount: 3, score: 25 },
+    { rank: 1, region: "경기도", schoolCount: 2, playerCount: 30, score: 410 },
+    { rank: 2, region: "서울특별시", schoolCount: 1, playerCount: 15, score: 340 },
+    { rank: 3, region: "부산광역시", schoolCount: 1, playerCount: 5, score: 45 },
+    { rank: 4, region: "대전광역시", schoolCount: 1, playerCount: 3, score: 25 },
+    { rank: 5, region: "인천광역시", schoolCount: 1, playerCount: 1, score: 8 },
   ],
 };
 
