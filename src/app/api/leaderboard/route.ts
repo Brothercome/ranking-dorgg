@@ -9,7 +9,9 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const gameParam = searchParams.get("game") ?? "lol";
   const scope = searchParams.get("scope") ?? "school"; // "school" | "region"
-  const limitParam = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") ?? "20", 10)));
+  const limitParam = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") ?? "10", 10)));
+  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
+  const offset = (page - 1) * limitParam;
 
   if (!VALID_GAMES.includes(gameParam as GameType)) {
     return NextResponse.json({ success: false, error: "지원하지 않는 게임입니다" }, { status: 400 });
@@ -108,12 +110,13 @@ export async function GET(request: NextRequest) {
     // Sort by score desc, then by name
     schoolScores.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
 
-    const result = schoolScores.slice(0, limitParam).map((s, idx) => ({
-      rank: idx + 1,
+    const total = schoolScores.length;
+    const result = schoolScores.slice(offset, offset + limitParam).map((s, idx) => ({
+      rank: offset + idx + 1,
       ...s,
     }));
 
-    return NextResponse.json({ success: true, data: result });
+    return NextResponse.json({ success: true, data: result, total, page, limit: limitParam, hasMore: offset + limitParam < total });
   }
 
   // scope === "region"
@@ -172,10 +175,11 @@ export async function GET(request: NextRequest) {
 
   regionScores.sort((a, b) => b.score - a.score);
 
-  const result = regionScores.slice(0, limitParam).map((r, idx) => ({
-    rank: idx + 1,
+  const total = regionScores.length;
+  const result = regionScores.slice(offset, offset + limitParam).map((r, idx) => ({
+    rank: offset + idx + 1,
     ...r,
   }));
 
-  return NextResponse.json({ success: true, data: result });
+  return NextResponse.json({ success: true, data: result, total, page, limit: limitParam, hasMore: offset + limitParam < total });
 }

@@ -25,6 +25,7 @@ interface RegionRankEntry {
 }
 
 const RANK_BADGES = ["👑", "🥈", "🥉"];
+const PAGE_SIZE = 10;
 
 export function LeaderboardPreview() {
   const router = useRouter();
@@ -33,12 +34,19 @@ export function LeaderboardPreview() {
   const [schools, setSchools] = useState<SchoolRankEntry[]>([]);
   const [regions, setRegions] = useState<RegionRankEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+
+  useEffect(() => {
+    setPage(1);
+  }, [gameType, scope]);
 
   useEffect(() => {
     async function fetchLeaderboard() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/leaderboard?game=${gameType}&scope=${scope}&limit=20`);
+        const res = await fetch(`/api/leaderboard?game=${gameType}&scope=${scope}&limit=${PAGE_SIZE}&page=${page}`);
         const data = await res.json();
         if (data.success) {
           if (scope === "school") {
@@ -46,12 +54,16 @@ export function LeaderboardPreview() {
           } else {
             setRegions(data.data);
           }
+          setTotal(data.total ?? 0);
+          setHasMore(data.hasMore ?? false);
         }
       } catch { /* silent */ }
       setLoading(false);
     }
     fetchLeaderboard();
-  }, [gameType, scope]);
+  }, [gameType, scope, page]);
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div className="w-full max-w-2xl mx-auto mt-12">
@@ -100,7 +112,7 @@ export function LeaderboardPreview() {
 
         {loading ? (
           <div className="divide-y divide-white/5">
-            {[0, 1, 2, 3, 4].map((i) => (
+            {Array.from({ length: PAGE_SIZE }).map((_, i) => (
               <div key={i} className="flex items-center gap-4 px-5 py-3.5">
                 <div className="animate-pulse h-6 w-6 rounded-full bg-white/[0.06]" />
                 <div className="animate-pulse h-4 w-32 rounded bg-white/[0.06]" />
@@ -180,12 +192,37 @@ export function LeaderboardPreview() {
           </>
         )}
 
-        {/* Footer */}
-        <div className="px-5 py-3 border-t border-white/5 text-center">
-          <p className="text-xs text-muted-foreground/60">
-            검색해서 랭킹에 등록하세요!
-          </p>
-        </div>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="px-5 py-3 border-t border-white/5 flex items-center justify-between">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="text-xs px-3 py-1.5 rounded-md bg-white/5 border border-white/10 text-muted-foreground hover:text-foreground hover:bg-white/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              ← 이전
+            </button>
+            <span className="text-xs text-muted-foreground">
+              {page} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={!hasMore}
+              className="text-xs px-3 py-1.5 rounded-md bg-white/5 border border-white/10 text-muted-foreground hover:text-foreground hover:bg-white/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              다음 →
+            </button>
+          </div>
+        )}
+
+        {/* Footer (only if single page) */}
+        {totalPages <= 1 && (
+          <div className="px-5 py-3 border-t border-white/5 text-center">
+            <p className="text-xs text-muted-foreground/60">
+              검색해서 랭킹에 등록하세요!
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
