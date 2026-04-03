@@ -15,7 +15,8 @@ interface LeaderboardEntry {
   tierRank: string;
   points: number;
   gameType: GameType;
-  label: string; // school name or region
+  label: string; // school name
+  region?: string;
   isCelebrity?: boolean;
   celebrityName?: string;
 }
@@ -23,34 +24,34 @@ interface LeaderboardEntry {
 const MOCK: Record<ScopeTab, Record<GameType, LeaderboardEntry[]>> = {
   school: {
     lol: [
-      { rank: 1, gameName: "Zeus", tagLine: "glgl", tier: "CHALLENGER", tierRank: "", points: 1866, gameType: "lol", label: "인항고등학교", isCelebrity: true, celebrityName: "Zeus (최우제)" },
-      { rank: 2, gameName: "아구몬", tagLine: "0509", tier: "CHALLENGER", tierRank: "", points: 1750, gameType: "lol", label: "인항고등학교", isCelebrity: true, celebrityName: "BDD (곽보성)" },
-      { rank: 3, gameName: "Hide on bush", tagLine: "KR1", tier: "GRANDMASTER", tierRank: "", points: 1269, gameType: "lol", label: "마포고등학교", isCelebrity: true, celebrityName: "Faker (이상혁)" },
-      { rank: 4, gameName: "허거덩", tagLine: "0303", tier: "MASTER", tierRank: "", points: 355, gameType: "lol", label: "가좌고등학교", isCelebrity: true, celebrityName: "Chovy (정지훈)" },
-      { rank: 5, gameName: "Deft", tagLine: "8366", tier: "DIAMOND", tierRank: "I", points: 75, gameType: "lol", label: "마포고등학교", isCelebrity: true, celebrityName: "Deft (김혁규)" },
+      { rank: 1, gameName: "Zeus", tagLine: "glgl", tier: "CHALLENGER", tierRank: "", points: 1866, gameType: "lol", label: "인항고등학교", region: "인천광역시", isCelebrity: true, celebrityName: "Zeus (최우제)" },
+      { rank: 2, gameName: "아구몬", tagLine: "0509", tier: "CHALLENGER", tierRank: "", points: 1750, gameType: "lol", label: "인항고등학교", region: "인천광역시", isCelebrity: true, celebrityName: "BDD (곽보성)" },
+      { rank: 3, gameName: "Hide on bush", tagLine: "KR1", tier: "GRANDMASTER", tierRank: "", points: 1269, gameType: "lol", label: "마포고등학교", region: "서울특별시", isCelebrity: true, celebrityName: "Faker (이상혁)" },
+      { rank: 4, gameName: "허거덩", tagLine: "0303", tier: "MASTER", tierRank: "", points: 355, gameType: "lol", label: "가좌고등학교", region: "인천광역시", isCelebrity: true, celebrityName: "Chovy (정지훈)" },
+      { rank: 5, gameName: "Deft", tagLine: "8366", tier: "DIAMOND", tierRank: "I", points: 75, gameType: "lol", label: "마포고등학교", region: "서울특별시", isCelebrity: true, celebrityName: "Deft (김혁규)" },
     ],
     valorant: [
-      { rank: 1, gameName: "MaKo", tagLine: "KR1", tier: "Radiant", tierRank: "", points: 487, gameType: "valorant", label: "서울과학고등학교" },
-      { rank: 2, gameName: "Lakia", tagLine: "KR1", tier: "Radiant", tierRank: "", points: 392, gameType: "valorant", label: "서울과학고등학교" },
-      { rank: 3, gameName: "Rb", tagLine: "KR1", tier: "Immortal", tierRank: "3", points: 89, gameType: "valorant", label: "한국디지털미디어고" },
-      { rank: 4, gameName: "k1Ng", tagLine: "KR1", tier: "Immortal", tierRank: "2", points: 76, gameType: "valorant", label: "한국디지털미디어고" },
-      { rank: 5, gameName: "Estrella", tagLine: "KR1", tier: "Immortal", tierRank: "1", points: 52, gameType: "valorant", label: "경기과학고등학교" },
+      { rank: 1, gameName: "MaKo", tagLine: "KR1", tier: "Radiant", tierRank: "", points: 487, gameType: "valorant", label: "서울과학고등학교", region: "서울특별시" },
+      { rank: 2, gameName: "Lakia", tagLine: "KR1", tier: "Radiant", tierRank: "", points: 392, gameType: "valorant", label: "서울과학고등학교", region: "서울특별시" },
+      { rank: 3, gameName: "Rb", tagLine: "KR1", tier: "Immortal", tierRank: "3", points: 89, gameType: "valorant", label: "한국디지털미디어고", region: "경기도" },
+      { rank: 4, gameName: "k1Ng", tagLine: "KR1", tier: "Immortal", tierRank: "2", points: 76, gameType: "valorant", label: "한국디지털미디어고", region: "경기도" },
+      { rank: 5, gameName: "Estrella", tagLine: "KR1", tier: "Immortal", tierRank: "1", points: 52, gameType: "valorant", label: "경기과학고등학교", region: "경기도" },
     ],
   },
   region: {
     lol: [
-      { rank: 1, gameName: "Hide on bush", tagLine: "KR1", tier: "CHALLENGER", tierRank: "", points: 1241, gameType: "lol", label: "서울특별시" },
-      { rank: 2, gameName: "T1 Zeus", tagLine: "KR1", tier: "CHALLENGER", tierRank: "", points: 1102, gameType: "lol", label: "서울특별시" },
-      { rank: 3, gameName: "Canyon", tagLine: "KR1", tier: "GRANDMASTER", tierRank: "", points: 934, gameType: "lol", label: "경기도" },
-      { rank: 4, gameName: "ShowMaker", tagLine: "KR1", tier: "GRANDMASTER", tierRank: "", points: 876, gameType: "lol", label: "부산광역시" },
-      { rank: 5, gameName: "Peyz", tagLine: "KR1", tier: "MASTER", tierRank: "", points: 654, gameType: "lol", label: "대구광역시" },
+      { rank: 1, gameName: "Zeus", tagLine: "glgl", tier: "CHALLENGER", tierRank: "", points: 1866, gameType: "lol", label: "인항고등학교", region: "서울특별시" },
+      { rank: 2, gameName: "아구몬", tagLine: "0509", tier: "CHALLENGER", tierRank: "", points: 1750, gameType: "lol", label: "인항고등학교", region: "서울특별시" },
+      { rank: 3, gameName: "Canyon", tagLine: "KR1", tier: "GRANDMASTER", tierRank: "", points: 934, gameType: "lol", label: "광문고등학교", region: "경기도" },
+      { rank: 4, gameName: "ShowMaker", tagLine: "KR1", tier: "GRANDMASTER", tierRank: "", points: 876, gameType: "lol", label: "해운대고등학교", region: "부산광역시" },
+      { rank: 5, gameName: "Peyz", tagLine: "KR1", tier: "MASTER", tierRank: "", points: 654, gameType: "lol", label: "대구고등학교", region: "대구광역시" },
     ],
     valorant: [
-      { rank: 1, gameName: "MaKo", tagLine: "KR1", tier: "Radiant", tierRank: "", points: 487, gameType: "valorant", label: "서울특별시" },
-      { rank: 2, gameName: "Lakia", tagLine: "KR1", tier: "Radiant", tierRank: "", points: 392, gameType: "valorant", label: "서울특별시" },
-      { rank: 3, gameName: "stax", tagLine: "KR1", tier: "Radiant", tierRank: "", points: 356, gameType: "valorant", label: "경기도" },
-      { rank: 4, gameName: "Rb", tagLine: "KR1", tier: "Immortal", tierRank: "3", points: 89, gameType: "valorant", label: "인천광역시" },
-      { rank: 5, gameName: "BuZz", tagLine: "KR1", tier: "Immortal", tierRank: "2", points: 78, gameType: "valorant", label: "부산광역시" },
+      { rank: 1, gameName: "MaKo", tagLine: "KR1", tier: "Radiant", tierRank: "", points: 487, gameType: "valorant", label: "서울과학고등학교", region: "서울특별시" },
+      { rank: 2, gameName: "Lakia", tagLine: "KR1", tier: "Radiant", tierRank: "", points: 392, gameType: "valorant", label: "서울과학고등학교", region: "서울특별시" },
+      { rank: 3, gameName: "stax", tagLine: "KR1", tier: "Radiant", tierRank: "", points: 356, gameType: "valorant", label: "수원고등학교", region: "경기도" },
+      { rank: 4, gameName: "Rb", tagLine: "KR1", tier: "Immortal", tierRank: "3", points: 89, gameType: "valorant", label: "인천고등학교", region: "인천광역시" },
+      { rank: 5, gameName: "BuZz", tagLine: "KR1", tier: "Immortal", tierRank: "2", points: 78, gameType: "valorant", label: "부산고등학교", region: "부산광역시" },
     ],
   },
 };
@@ -121,10 +122,11 @@ export function LeaderboardPreview() {
         <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full bg-blue-500/10 blur-3xl" />
 
         {/* Column header */}
-        <div className="grid grid-cols-[40px_1fr_auto_auto] gap-2 px-5 py-2.5 border-b border-white/5 text-xs text-muted-foreground/60">
+        <div className="grid grid-cols-[40px_1fr_90px_110px_160px] gap-2 px-5 py-2.5 border-b border-white/5 text-xs text-muted-foreground/60">
           <span>#</span>
-          <span>플레이어</span>
-          <span>{scope === "school" ? "학교" : "지역"}</span>
+          <span>아이디</span>
+          <span>지역</span>
+          <span>학교</span>
           <span className="text-right">티어</span>
         </div>
 
@@ -134,7 +136,7 @@ export function LeaderboardPreview() {
             return (
               <div
                 key={entry.rank}
-                className="grid grid-cols-[40px_1fr_auto_auto] gap-2 items-center px-5 py-3.5 hover:bg-white/[0.02] transition-colors"
+                className="grid grid-cols-[40px_1fr_90px_110px_160px] gap-2 items-center px-5 py-3 hover:bg-white/[0.02] transition-colors"
               >
                 {/* Rank */}
                 <div className="text-center">
@@ -145,8 +147,8 @@ export function LeaderboardPreview() {
                   )}
                 </div>
 
-                {/* Player */}
-                <div className="min-w-0">
+                {/* Player ID */}
+                <div className="min-w-0 overflow-hidden">
                   <span className="text-sm font-medium truncate block">
                     {entry.gameName}
                     {entry.isCelebrity ? (
@@ -160,15 +162,20 @@ export function LeaderboardPreview() {
                   )}
                 </div>
 
-                {/* School / Region */}
-                <span className="text-xs text-muted-foreground px-2 py-0.5 rounded-md bg-white/5 whitespace-nowrap">
+                {/* Region */}
+                <span className="text-xs text-muted-foreground truncate">
+                  {entry.region ?? "-"}
+                </span>
+
+                {/* School */}
+                <span className="text-xs text-muted-foreground truncate">
                   {entry.label}
                 </span>
 
                 {/* Tier + Points */}
-                <div className="flex items-center gap-2 justify-end">
+                <div className="flex items-center gap-1.5 justify-end overflow-hidden">
                   <TierBadge gameType={gameType} tier={entry.tier} rank={entry.tierRank} />
-                  <span className="text-xs text-muted-foreground/60 w-12 text-right">
+                  <span className="text-xs text-muted-foreground/60 shrink-0">
                     {entry.points}{gameType === "lol" ? "LP" : "RR"}
                   </span>
                 </div>
