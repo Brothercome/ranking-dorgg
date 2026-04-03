@@ -119,59 +119,60 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, data: result, total, page, limit: limitParam, hasMore: offset + limitParam < total });
   }
 
-  // scope === "region"
-  const { data: regions } = await supabase
-    .from("organizations")
-    .select("region_sido")
-    .eq("type", "school")
-    .not("region_sido", "is", null);
-
-  const uniqueRegions = [...new Set((regions ?? []).map((r) => r.region_sido).filter(Boolean))];
-
-  const regionScores: Array<{
-    region: string;
-    schoolCount: number;
-    playerCount: number;
-    score: number;
-  }> = [];
-
-  for (const region of uniqueRegions) {
-    const { data: regionSchools } = await supabase
+  // scope === "region" — batched: 3 queries total instead of N+1
+  const [allOrgsRes, allLinksRes, allAccountsRes] = await Promise.all([
+    supabase
       .from("organizations")
-      .select("id, member_count")
+      .select("id, region_sido, member_count")
       .eq("type", "school")
-      .eq("region_sido", region);
+      .not("region_sido", "is", null),
+    supabase
+      .from("account_organizations")
+      .select("organization_id, game_account_id"),
+    supabase
+      .from("game_accounts")
+      .select("id, current_tier")
+      .eq("game_type", gameType),
+  ]);
 
-    const schoolCount = regionSchools?.length ?? 0;
-    const playerCount = (regionSchools ?? []).reduce((sum, s) => sum + (s.member_count ?? 0), 0);
+  const allOrgs = allOrgsRes.data ?? [];
+  const allLinks = allLinksRes.data ?? [];
+  const allAccounts = allAccountsRes.data ?? [];
 
-    let score = 0;
-    const schoolIds = (regionSchools ?? []).filter((s) => (s.member_count ?? 0) > 0).map((s) => s.id);
+  // Build lookup maps
+  const orgToAccounts = new Map<string, string[]>();
+  for (const link of allLinks) {
+    const list = orgToAccounts.get(link.organization_id) ?? [];
+    list.push(link.game_account_id);
+    orgToAccounts.set(link.organization_id, list);
+  }
 
-    if (schoolIds.length > 0) {
-      const { data: links } = await supabase
-        .from("account_organizations")
-        .select("game_account_id")
-        .in("organization_id", schoolIds);
+  const accountTierMap = new Map<string, string>();
+  for (const acc of allAccounts) {
+    accountTierMap.set(acc.id, acc.current_tier ?? "");
+  }
 
-      const accIds = [...new Set((links ?? []).map((l) => l.game_account_id))];
+  // Group orgs by region and compute scores
+  const regionMap = new Map<string, { schoolCount: number; playerCount: number; score: number }>();
 
-      if (accIds.length > 0) {
-        const { data: accounts } = await supabase
-          .from("game_accounts")
-          .select("current_tier")
-          .eq("game_type", gameType)
-          .in("id", accIds);
+  for (const org of allOrgs) {
+    const region = org.region_sido!;
+    const entry = regionMap.get(region) ?? { schoolCount: 0, playerCount: 0, score: 0 };
+    entry.schoolCount++;
+    entry.playerCount += org.member_count ?? 0;
 
-        score = (accounts ?? []).reduce(
-          (sum, a) => sum + getTierScore(gameType, a.current_tier ?? ""),
-          0
-        );
-      }
+    const accIds = orgToAccounts.get(org.id) ?? [];
+    for (const accId of accIds) {
+      entry.score += getTierScore(gameType, accountTierMap.get(accId) ?? "");
     }
 
-    regionScores.push({ region: region!, schoolCount, playerCount, score });
+    regionMap.set(region, entry);
   }
+
+  const regionScores = Array.from(regionMap.entries()).map(([region, data]) => ({
+    region,
+    ...data,
+  }));
 
   regionScores.sort((a, b) => b.score - a.score);
 

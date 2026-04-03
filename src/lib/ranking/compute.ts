@@ -7,15 +7,23 @@ export async function computeRanking(
   gameType: GameType,
   targetGameAccountId?: string
 ): Promise<RankingResult | null> {
-  // Get all game accounts in this org for this game type
-  const { data: links } = await supabase
-    .from("account_organizations")
-    .select("game_account_id")
-    .eq("organization_id", organizationId);
+  // Fetch links + org name in parallel
+  const [linksRes, orgRes] = await Promise.all([
+    supabase
+      .from("account_organizations")
+      .select("game_account_id")
+      .eq("organization_id", organizationId),
+    supabase
+      .from("organizations")
+      .select("name")
+      .eq("id", organizationId)
+      .single(),
+  ]);
 
-  if (!links || links.length === 0) return null;
+  if (!linksRes.data || linksRes.data.length === 0) return null;
 
-  const accountIds = links.map((l) => l.game_account_id);
+  const accountIds = linksRes.data.map((l) => l.game_account_id);
+  const orgName = orgRes.data?.name ?? "Unknown";
 
   const { data: members } = await supabase
     .from("game_accounts")
@@ -25,14 +33,6 @@ export async function computeRanking(
     .order("tier_numeric", { ascending: false });
 
   if (!members || members.length === 0) return null;
-
-  const { data: org } = await supabase
-    .from("organizations")
-    .select("name")
-    .eq("id", organizationId)
-    .single();
-
-  const orgName = org?.name ?? "Unknown";
 
   const ranked: RankEntry[] = members.map((m, idx) => ({
     rank: idx + 1,
