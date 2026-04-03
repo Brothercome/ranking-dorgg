@@ -121,7 +121,7 @@ export function LeaderboardPreview() {
         <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full bg-blue-500/10 blur-3xl" />
 
         {/* Column header */}
-        <div className="grid grid-cols-[40px_1fr_auto_100px] gap-2 px-5 py-2.5 border-b border-white/5 text-xs text-muted-foreground/60">
+        <div className="grid grid-cols-[40px_1fr_auto_auto] gap-2 px-5 py-2.5 border-b border-white/5 text-xs text-muted-foreground/60">
           <span>#</span>
           <span>플레이어</span>
           <span>{scope === "school" ? "학교" : "지역"}</span>
@@ -134,7 +134,7 @@ export function LeaderboardPreview() {
             return (
               <div
                 key={entry.rank}
-                className="grid grid-cols-[40px_1fr_auto_100px] gap-2 items-center px-5 py-3.5 hover:bg-white/[0.02] transition-colors"
+                className="grid grid-cols-[40px_1fr_auto_auto] gap-2 items-center px-5 py-3.5 hover:bg-white/[0.02] transition-colors"
               >
                 {/* Rank */}
                 <div className="text-center">
