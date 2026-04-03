@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { GameType } from "@/types/game";
 import { GAME_LABELS } from "@/types/game";
-import { TierBadge } from "./tier-badge";
 
 type ScopeTab = "school" | "region";
 
@@ -13,9 +12,7 @@ interface SchoolRankEntry {
   name: string;
   region: string;
   memberCount: number;
-  avgTier: string;
-  avgTierRank: string;
-  avgPoints: number;
+  score: number;
   id?: string;
 }
 
@@ -24,44 +21,43 @@ interface RegionRankEntry {
   region: string;
   schoolCount: number;
   playerCount: number;
-  topTier: string;
-  topTierRank: string;
-  avgPoints: number;
+  score: number;
 }
 
 const RANK_BADGES = ["👑", "🥈", "🥉"];
 
+// 점수 = 티어 가중치 합산 (챌린저=100, 그마=50, 마스터=25, 다이아=12...)
 const MOCK_SCHOOLS: Record<GameType, SchoolRankEntry[]> = {
   lol: [
-    { rank: 1, name: "인항고등학교", region: "인천광역시", memberCount: 24, avgTier: "CHALLENGER", avgTierRank: "", avgPoints: 1808 },
-    { rank: 2, name: "마포고등학교", region: "서울특별시", memberCount: 18, avgTier: "DIAMOND", avgTierRank: "II", avgPoints: 672 },
-    { rank: 3, name: "가좌고등학교", region: "인천광역시", memberCount: 12, avgTier: "MASTER", avgTierRank: "", avgPoints: 355 },
-    { rank: 4, name: "서울과학고등학교", region: "서울특별시", memberCount: 31, avgTier: "PLATINUM", avgTierRank: "I", avgPoints: 87 },
-    { rank: 5, name: "한국디지털미디어고", region: "경기도", memberCount: 45, avgTier: "GOLD", avgTierRank: "II", avgPoints: 54 },
+    { rank: 1, name: "인항고등학교", region: "인천광역시", memberCount: 3, score: 205 },
+    { rank: 2, name: "마포고등학교", region: "서울특별시", memberCount: 2, score: 112 },
+    { rank: 3, name: "가좌고등학교", region: "인천광역시", memberCount: 1, score: 25 },
+    { rank: 4, name: "관악고등학교", region: "서울특별시", memberCount: 1, score: 100 },
+    { rank: 5, name: "안양공업고등학교", region: "경기도", memberCount: 1, score: 100 },
   ],
   valorant: [
-    { rank: 1, name: "서울과학고등학교", region: "서울특별시", memberCount: 15, avgTier: "Radiant", avgTierRank: "", avgPoints: 440 },
-    { rank: 2, name: "한국디지털미디어고", region: "경기도", memberCount: 22, avgTier: "Immortal", avgTierRank: "2", avgPoints: 83 },
-    { rank: 3, name: "경기과학고등학교", region: "경기도", memberCount: 8, avgTier: "Immortal", avgTierRank: "1", avgPoints: 52 },
-    { rank: 4, name: "대전과학고등학교", region: "대전광역시", memberCount: 11, avgTier: "Diamond", avgTierRank: "3", avgPoints: 67 },
-    { rank: 5, name: "세종과학고등학교", region: "세종특별자치시", memberCount: 6, avgTier: "Platinum", avgTierRank: "1", avgPoints: 44 },
+    { rank: 1, name: "안산동산고등학교", region: "경기도", memberCount: 1, score: 5 },
+    { rank: 2, name: "인천동산고등학교", region: "인천광역시", memberCount: 1, score: 8 },
+    { rank: 3, name: "서울과학고등학교", region: "서울특별시", memberCount: 15, score: 340 },
+    { rank: 4, name: "한국디지털미디어고", region: "경기도", memberCount: 22, score: 285 },
+    { rank: 5, name: "경기과학고등학교", region: "경기도", memberCount: 8, score: 120 },
   ],
 };
 
 const MOCK_REGIONS: Record<GameType, RegionRankEntry[]> = {
   lol: [
-    { rank: 1, region: "서울특별시", schoolCount: 65, playerCount: 312, topTier: "CHALLENGER", topTierRank: "", avgPoints: 1450 },
-    { rank: 2, region: "인천광역시", schoolCount: 9, playerCount: 87, topTier: "CHALLENGER", topTierRank: "", avgPoints: 1230 },
-    { rank: 3, region: "경기도", schoolCount: 67, playerCount: 245, topTier: "GRANDMASTER", topTierRank: "", avgPoints: 980 },
-    { rank: 4, region: "부산광역시", schoolCount: 29, playerCount: 134, topTier: "GRANDMASTER", topTierRank: "", avgPoints: 876 },
-    { rank: 5, region: "대구광역시", schoolCount: 14, playerCount: 76, topTier: "MASTER", topTierRank: "", avgPoints: 654 },
+    { rank: 1, region: "인천광역시", schoolCount: 2, playerCount: 4, score: 230 },
+    { rank: 2, region: "서울특별시", schoolCount: 3, playerCount: 5, score: 237 },
+    { rank: 3, region: "경기도", schoolCount: 2, playerCount: 3, score: 126 },
+    { rank: 4, region: "강원특별자치도", schoolCount: 1, playerCount: 1, score: 12 },
+    { rank: 5, region: "광주광역시", schoolCount: 1, playerCount: 1, score: 100 },
   ],
   valorant: [
-    { rank: 1, region: "서울특별시", schoolCount: 65, playerCount: 198, topTier: "Radiant", topTierRank: "", avgPoints: 487 },
-    { rank: 2, region: "경기도", schoolCount: 67, playerCount: 156, topTier: "Radiant", topTierRank: "", avgPoints: 356 },
-    { rank: 3, region: "인천광역시", schoolCount: 9, playerCount: 45, topTier: "Immortal", topTierRank: "3", avgPoints: 89 },
-    { rank: 4, region: "부산광역시", schoolCount: 29, playerCount: 67, topTier: "Immortal", topTierRank: "2", avgPoints: 78 },
-    { rank: 5, region: "대전광역시", schoolCount: 19, playerCount: 34, topTier: "Diamond", topTierRank: "1", avgPoints: 45 },
+    { rank: 1, region: "서울특별시", schoolCount: 1, playerCount: 15, score: 340 },
+    { rank: 2, region: "경기도", schoolCount: 2, playerCount: 30, score: 410 },
+    { rank: 3, region: "인천광역시", schoolCount: 1, playerCount: 1, score: 8 },
+    { rank: 4, region: "부산광역시", schoolCount: 1, playerCount: 5, score: 45 },
+    { rank: 5, region: "대전광역시", schoolCount: 1, playerCount: 3, score: 25 },
   ],
 };
 
@@ -117,13 +113,12 @@ export function LeaderboardPreview() {
 
         {scope === "school" ? (
           <>
-            {/* School Rankings Header */}
-            <div className="grid grid-cols-[40px_1fr_80px_60px_140px] gap-2 px-5 py-2.5 border-b border-white/5 text-xs text-muted-foreground/60">
+            <div className="grid grid-cols-[40px_1fr_80px_50px_70px] gap-2 px-5 py-2.5 border-b border-white/5 text-xs text-muted-foreground/60">
               <span>#</span>
               <span>학교</span>
               <span>지역</span>
               <span>참여</span>
-              <span className="text-right">평균 티어</span>
+              <span className="text-right">점수</span>
             </div>
 
             <div className="divide-y divide-white/5 relative">
@@ -131,7 +126,6 @@ export function LeaderboardPreview() {
                 <button
                   key={entry.rank}
                   onClick={async () => {
-                    // Search for school by name and navigate
                     try {
                       const res = await fetch(`/api/org/search?q=${encodeURIComponent(entry.name)}`);
                       const data = await res.json();
@@ -140,7 +134,7 @@ export function LeaderboardPreview() {
                       }
                     } catch { /* silent */ }
                   }}
-                  className="w-full grid grid-cols-[40px_1fr_80px_60px_140px] gap-2 items-center px-5 py-3 hover:bg-white/[0.03] transition-colors text-left"
+                  className="w-full grid grid-cols-[40px_1fr_80px_50px_70px] gap-2 items-center px-5 py-3.5 hover:bg-white/[0.03] transition-colors text-left"
                 >
                   <div className="text-center">
                     {entry.rank <= 3 ? (
@@ -152,25 +146,19 @@ export function LeaderboardPreview() {
                   <span className="text-sm font-medium truncate">{entry.name}</span>
                   <span className="text-xs text-muted-foreground truncate">{entry.region}</span>
                   <span className="text-xs text-muted-foreground">{entry.memberCount}명</span>
-                  <div className="flex items-center gap-1.5 justify-end">
-                    <TierBadge gameType={gameType} tier={entry.avgTier} rank={entry.avgTierRank} />
-                    <span className="text-xs text-muted-foreground/60 shrink-0">
-                      {entry.avgPoints}{gameType === "lol" ? "LP" : "RR"}
-                    </span>
-                  </div>
+                  <span className="text-right text-sm font-bold text-primary">{entry.score.toLocaleString()}</span>
                 </button>
               ))}
             </div>
           </>
         ) : (
           <>
-            {/* Region Rankings Header */}
-            <div className="grid grid-cols-[40px_1fr_60px_60px_140px] gap-2 px-5 py-2.5 border-b border-white/5 text-xs text-muted-foreground/60">
+            <div className="grid grid-cols-[40px_1fr_50px_50px_70px] gap-2 px-5 py-2.5 border-b border-white/5 text-xs text-muted-foreground/60">
               <span>#</span>
               <span>지역</span>
               <span>학교</span>
               <span>참여</span>
-              <span className="text-right">최고 티어</span>
+              <span className="text-right">점수</span>
             </div>
 
             <div className="divide-y divide-white/5 relative">
@@ -178,7 +166,7 @@ export function LeaderboardPreview() {
                 <button
                   key={entry.rank}
                   onClick={() => router.push(`/region/${encodeURIComponent(entry.region)}`)}
-                  className="w-full grid grid-cols-[40px_1fr_60px_60px_140px] gap-2 items-center px-5 py-3 hover:bg-white/[0.03] transition-colors text-left"
+                  className="w-full grid grid-cols-[40px_1fr_50px_50px_70px] gap-2 items-center px-5 py-3.5 hover:bg-white/[0.03] transition-colors text-left"
                 >
                   <div className="text-center">
                     {entry.rank <= 3 ? (
@@ -190,12 +178,7 @@ export function LeaderboardPreview() {
                   <span className="text-sm font-medium truncate">{entry.region}</span>
                   <span className="text-xs text-muted-foreground">{entry.schoolCount}개</span>
                   <span className="text-xs text-muted-foreground">{entry.playerCount}명</span>
-                  <div className="flex items-center gap-1.5 justify-end">
-                    <TierBadge gameType={gameType} tier={entry.topTier} rank={entry.topTierRank} />
-                    <span className="text-xs text-muted-foreground/60 shrink-0">
-                      {entry.avgPoints}{gameType === "lol" ? "LP" : "RR"}
-                    </span>
-                  </div>
+                  <span className="text-right text-sm font-bold text-primary">{entry.score.toLocaleString()}</span>
                 </button>
               ))}
             </div>
