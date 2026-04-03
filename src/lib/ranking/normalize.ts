@@ -69,6 +69,25 @@ export function normalizeLolTier(tier: string, rank: string, lp: number): number
   return Math.min(10000, base + rankOffset + lpBonus);
 }
 
+// --- Tier Score (학교/지역 점수 합산용) ---
+const LOL_TIER_SCORE: Record<string, number> = {
+  CHALLENGER: 100, GRANDMASTER: 50, MASTER: 25,
+  DIAMOND: 12, EMERALD: 8, PLATINUM: 5,
+  GOLD: 3, SILVER: 2, BRONZE: 1.5, IRON: 1,
+};
+
+const VALORANT_TIER_SCORE: Record<string, number> = {
+  Radiant: 100, Immortal: 50, Ascendant: 25,
+  Diamond: 12, Platinum: 8, Gold: 5,
+  Silver: 3, Bronze: 2, Iron: 1,
+};
+
+/** 티어 기반 점수 (학교/지역 합산용). 챌린저=10, 아이언=1 */
+export function getTierScore(gameType: string, tier: string): number {
+  if (gameType === "lol") return LOL_TIER_SCORE[tier] ?? 0;
+  return VALORANT_TIER_SCORE[tier] ?? 0;
+}
+
 // --- Generic ---
 export function getTierDisplay(gameType: string, tier: string, rank: string, points: number): string {
   if (gameType === "valorant") {

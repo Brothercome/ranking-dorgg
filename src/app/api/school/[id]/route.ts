@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { supabase } from "@/lib/db";
 import { checkRateLimit } from "@/lib/cache/rate-limit";
+import { getTierScore } from "@/lib/ranking/normalize";
 import type { GameType } from "@/types/game";
 
 const idSchema = z.string().uuid();
@@ -107,12 +108,26 @@ export async function GET(
       hasMore = offset + limit < totalMembers;
     }
 
-    // Region ranking: count schools in same region with higher avg tier_numeric
+    // School score: sum of tier scores for all members
+    let schoolScore = 0;
+    if (accountIds.length > 0) {
+      const { data: allMembers } = await supabase
+        .from("game_accounts")
+        .select("current_tier")
+        .eq("game_type", gameType)
+        .in("id", accountIds);
+
+      schoolScore = (allMembers ?? []).reduce(
+        (sum, m) => sum + getTierScore(gameType, m.current_tier ?? ""),
+        0
+      );
+    }
+
+    // Region ranking: rank schools by tier score sum
     let regionRank: number | null = null;
     let regionTotal: number | null = null;
 
     if (school.region_sido) {
-      // Get all orgs in same region that have members
       const { data: regionOrgs } = await supabase
         .from("organizations")
         .select("id, member_count")
@@ -120,10 +135,7 @@ export async function GET(
         .gt("member_count", 0);
 
       if (regionOrgs && regionOrgs.length > 0) {
-        regionTotal = regionOrgs.length;
-
-        // Calculate avg tier_numeric for each org
-        const orgScores: Array<{ orgId: string; avgTier: number }> = [];
+        const orgScores: Array<{ orgId: string; score: number }> = [];
 
         for (const org of regionOrgs) {
           const { data: orgLinks } = await supabase
@@ -135,19 +147,19 @@ export async function GET(
             const orgAccountIds = orgLinks.map((l) => l.game_account_id);
             const { data: orgMembers } = await supabase
               .from("game_accounts")
-              .select("tier_numeric")
+              .select("current_tier")
               .eq("game_type", gameType)
               .in("id", orgAccountIds);
 
-            if (orgMembers && orgMembers.length > 0) {
-              const avg = orgMembers.reduce((sum, m) => sum + (m.tier_numeric ?? 0), 0) / orgMembers.length;
-              orgScores.push({ orgId: org.id, avgTier: avg });
-            }
+            const score = (orgMembers ?? []).reduce(
+              (sum, m) => sum + getTierScore(gameType, m.current_tier ?? ""),
+              0
+            );
+            if (score > 0) orgScores.push({ orgId: org.id, score });
           }
         }
 
-        // Sort by avgTier descending
-        orgScores.sort((a, b) => b.avgTier - a.avgTier);
+        orgScores.sort((a, b) => b.score - a.score);
         const myIndex = orgScores.findIndex((o) => o.orgId === id);
         regionRank = myIndex >= 0 ? myIndex + 1 : null;
         regionTotal = orgScores.length;
@@ -166,6 +178,7 @@ export async function GET(
           regionSigungu: school.region_sigungu,
           memberCount: school.member_count,
         },
+        schoolScore,
         leaderboard,
         totalMembers,
         hasMore,

@@ -61,6 +61,7 @@ export function SchoolLeaderboard({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [totalMembers, setTotalMembers] = useState(0);
+  const [schoolScore, setSchoolScore] = useState(0);
   const [regionRanking, setRegionRanking] = useState<RegionRanking | null>(null);
 
   const fetchLeaderboard = useCallback(async (gameParam: GameType, pageParam: number, append: boolean) => {
@@ -81,6 +82,7 @@ export function SchoolLeaderboard({
         setEntries((prev) => append ? [...prev, ...newEntries] : newEntries);
         setHasMore(data.data.hasMore);
         setTotalMembers(data.data.totalMembers);
+        setSchoolScore(data.data.schoolScore ?? 0);
         setRegionRanking(data.data.regionRanking);
       }
     } catch {
@@ -133,6 +135,12 @@ export function SchoolLeaderboard({
             👥 {memberCount}명 등록
           </span>
         </div>
+        {!loading && schoolScore > 0 && (
+          <div className="mt-2">
+            <span className="text-3xl font-bold text-primary">{schoolScore.toLocaleString()}</span>
+            <span className="text-sm text-muted-foreground ml-1">점</span>
+          </div>
+        )}
       </div>
 
       {/* Game tabs */}
