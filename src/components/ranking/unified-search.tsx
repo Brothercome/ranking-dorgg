@@ -248,11 +248,22 @@ export function UnifiedSearch() {
         </div>
 
         {/* Dropdown */}
-        {showDropdown && (
+        {(showDropdown || (isLoading && query.length >= 1)) && (
           <div
             ref={dropdownRef}
             className="absolute top-full left-0 right-0 mt-1.5 bg-[#111] backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 max-h-[400px] overflow-y-auto"
           >
+            {isLoading && suggestions.length === 0 && (
+              <div className="py-1">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="px-4 py-2.5 flex items-center gap-3">
+                    <div className="animate-pulse h-4 w-4 rounded bg-white/[0.06]" />
+                    <div className="animate-pulse h-4 rounded bg-white/[0.06]" style={{ width: `${120 + i * 30}px` }} />
+                    <div className="animate-pulse h-3 w-14 rounded bg-white/[0.06] ml-auto" />
+                  </div>
+                ))}
+              </div>
+            )}
             {grouped.map((group, gi) => {
               const Icon = CATEGORY_ICONS[group.category];
               return (

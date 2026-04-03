@@ -162,11 +162,27 @@ export function SchoolLeaderboard({
         </div>
       </div>
 
-      {/* Loading */}
+      {/* Loading Skeleton */}
       {loading && (
-        <div className="text-center py-12">
-          <div className="text-3xl mb-3 animate-bounce">🎮</div>
-          <p className="text-sm text-muted-foreground animate-pulse">랭킹 불러오는 중...</p>
+        <div className="space-y-0 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl overflow-hidden">
+          {/* Top 3 skeleton */}
+          <div className="grid grid-cols-3 gap-3 p-4 border-b border-white/5">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="bg-white/[0.03] rounded-xl border border-white/10 p-5 text-center">
+                <div className="animate-pulse h-8 w-8 mx-auto rounded-full bg-white/[0.06] mb-3" />
+                <div className="animate-pulse h-4 w-20 mx-auto rounded bg-white/[0.06] mb-2" />
+                <div className="animate-pulse h-5 w-16 mx-auto rounded bg-white/[0.06]" />
+              </div>
+            ))}
+          </div>
+          {/* Row skeletons */}
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-center gap-4 px-5 py-3.5 border-b border-white/5 last:border-0">
+              <div className="animate-pulse h-6 w-6 rounded-full bg-white/[0.06]" />
+              <div className="animate-pulse h-4 w-32 rounded bg-white/[0.06]" />
+              <div className="ml-auto animate-pulse h-5 w-20 rounded bg-white/[0.06]" />
+            </div>
+          ))}
         </div>
       )}
 
