@@ -23,11 +23,11 @@ interface LeaderboardEntry {
 const MOCK: Record<ScopeTab, Record<GameType, LeaderboardEntry[]>> = {
   school: {
     lol: [
-      { rank: 1, gameName: "Hide on bush", tagLine: "KR1", tier: "GRANDMASTER", tierRank: "", points: 1269, gameType: "lol", label: "마포고등학교", isCelebrity: true, celebrityName: "Faker (이상혁)" },
-      { rank: 2, gameName: "Deft", tagLine: "8366", tier: "DIAMOND", tierRank: "I", points: 0, gameType: "lol", label: "마포고등학교", isCelebrity: true, celebrityName: "Deft (김혁규)" },
-      { rank: 3, gameName: "아구몬", tagLine: "0509", tier: "CHALLENGER", tierRank: "", points: 1750, gameType: "lol", label: "인항고등학교", isCelebrity: true, celebrityName: "BDD (곽보성)" },
-      { rank: 4, gameName: "Zeus", tagLine: "glgl", tier: "CHALLENGER", tierRank: "", points: 1866, gameType: "lol", label: "인항고등학교", isCelebrity: true, celebrityName: "Zeus (최우제)" },
-      { rank: 5, gameName: "허거덩", tagLine: "0303", tier: "MASTER", tierRank: "", points: 355, gameType: "lol", label: "가좌고등학교", isCelebrity: true, celebrityName: "Chovy (정지훈)" },
+      { rank: 1, gameName: "Zeus", tagLine: "glgl", tier: "CHALLENGER", tierRank: "", points: 1866, gameType: "lol", label: "인항고등학교", isCelebrity: true, celebrityName: "Zeus (최우제)" },
+      { rank: 2, gameName: "아구몬", tagLine: "0509", tier: "CHALLENGER", tierRank: "", points: 1750, gameType: "lol", label: "인항고등학교", isCelebrity: true, celebrityName: "BDD (곽보성)" },
+      { rank: 3, gameName: "Hide on bush", tagLine: "KR1", tier: "GRANDMASTER", tierRank: "", points: 1269, gameType: "lol", label: "마포고등학교", isCelebrity: true, celebrityName: "Faker (이상혁)" },
+      { rank: 4, gameName: "허거덩", tagLine: "0303", tier: "MASTER", tierRank: "", points: 355, gameType: "lol", label: "가좌고등학교", isCelebrity: true, celebrityName: "Chovy (정지훈)" },
+      { rank: 5, gameName: "Deft", tagLine: "8366", tier: "DIAMOND", tierRank: "I", points: 75, gameType: "lol", label: "마포고등학교", isCelebrity: true, celebrityName: "Deft (김혁규)" },
     ],
     valorant: [
       { rank: 1, gameName: "MaKo", tagLine: "KR1", tier: "Radiant", tierRank: "", points: 487, gameType: "valorant", label: "서울과학고등학교" },
@@ -165,9 +165,12 @@ export function LeaderboardPreview() {
                   {entry.label}
                 </span>
 
-                {/* Tier */}
-                <div className="text-right">
+                {/* Tier + Points */}
+                <div className="flex items-center gap-2 justify-end">
                   <TierBadge gameType={gameType} tier={entry.tier} rank={entry.tierRank} />
+                  <span className="text-xs text-muted-foreground/60 w-12 text-right">
+                    {entry.points}{gameType === "lol" ? "LP" : "RR"}
+                  </span>
                 </div>
               </div>
             );
