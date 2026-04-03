@@ -105,7 +105,7 @@ export function SchoolLeaderboard({
   };
 
   const top3 = entries.slice(0, 3);
-  const rest = entries.slice(3);
+  const rest = entries;
 
   const getTierColor = (tier: string) => TIER_COLORS[tier] ?? "#888";
 
