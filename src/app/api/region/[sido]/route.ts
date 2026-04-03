@@ -135,10 +135,10 @@ export async function GET(
         .map(([orgId, s]) => ({
           orgId,
           name: s.name,
-          avgTier: s.total / s.count,
+          score: s.total,
           memberCount: s.count,
         }))
-        .sort((a, b) => b.avgTier - a.avgTier);
+        .sort((a, b) => b.score - a.score);
 
       const totalSchools = sorted.length;
       const paginated = sorted.slice(offset, offset + limit);
@@ -151,7 +151,7 @@ export async function GET(
             rank: offset + idx + 1,
             schoolId: s.orgId,
             schoolName: s.name,
-            avgTier: Math.round(s.avgTier * 100) / 100,
+            score: s.score,
             memberCount: s.memberCount,
           })),
           totalSchools,
