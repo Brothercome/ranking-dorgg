@@ -203,7 +203,7 @@ export function UnifiedSearch() {
   const handleInput = (value: string) => {
     setQuery(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => search(value), 200);
+    debounceRef.current = setTimeout(() => search(value), 300);
   };
 
   const navigate = (suggestion: Suggestion) => {

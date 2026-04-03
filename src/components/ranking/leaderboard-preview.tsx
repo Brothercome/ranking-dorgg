@@ -29,15 +29,15 @@ const RANK_BADGES = ["👑", "🥈", "🥉"];
 // 점수 = 티어 가중치 합산 (챌린저=100, 그마=50, 마스터=25, 다이아=12...)
 const MOCK_SCHOOLS: Record<GameType, SchoolRankEntry[]> = {
   lol: [
-    { rank: 1, name: "인항고등학교", region: "인천광역시", memberCount: 3, score: 205 },
-    { rank: 2, name: "마포고등학교", region: "서울특별시", memberCount: 2, score: 112 },
-    { rank: 3, name: "가좌고등학교", region: "인천광역시", memberCount: 1, score: 25 },
-    { rank: 4, name: "관악고등학교", region: "서울특별시", memberCount: 1, score: 100 },
-    { rank: 5, name: "안양공업고등학교", region: "경기도", memberCount: 1, score: 100 },
+    { rank: 1, name: "인항고등학교", region: "인천광역시", memberCount: 3, score: 205, id: "5ab8948a-2869-4268-8074-e78b9bb39aff" },
+    { rank: 2, name: "마포고등학교", region: "서울특별시", memberCount: 2, score: 112, id: "5490b79c-4778-4c28-a605-2fea9402c6a7" },
+    { rank: 3, name: "가좌고등학교", region: "인천광역시", memberCount: 1, score: 25, id: "9e82fac8-19f7-482f-93cc-9bf987bb9443" },
+    { rank: 4, name: "관악고등학교", region: "서울특별시", memberCount: 1, score: 100, id: "e3440f97-708a-42db-b014-5c05f498f32e" },
+    { rank: 5, name: "안양공업고등학교", region: "경기도", memberCount: 1, score: 100, id: "dc2652ea-cc6e-451c-8d57-3a134ba2fd77" },
   ],
   valorant: [
-    { rank: 1, name: "안산동산고등학교", region: "경기도", memberCount: 1, score: 5 },
-    { rank: 2, name: "인천동산고등학교", region: "인천광역시", memberCount: 1, score: 8 },
+    { rank: 1, name: "안산동산고등학교", region: "경기도", memberCount: 1, score: 5, id: "a29aa9ae-f704-41fd-a6aa-a7b2997c32c9" },
+    { rank: 2, name: "인천동산고등학교", region: "인천광역시", memberCount: 1, score: 8, id: "410309a0-52d2-4a08-9b57-d2a060def3de" },
     { rank: 3, name: "서울과학고등학교", region: "서울특별시", memberCount: 15, score: 340 },
     { rank: 4, name: "한국디지털미디어고", region: "경기도", memberCount: 22, score: 285 },
     { rank: 5, name: "경기과학고등학교", region: "경기도", memberCount: 8, score: 120 },
@@ -125,15 +125,7 @@ export function LeaderboardPreview() {
               {MOCK_SCHOOLS[gameType].map((entry) => (
                 <button
                   key={entry.rank}
-                  onClick={async () => {
-                    try {
-                      const res = await fetch(`/api/org/search?q=${encodeURIComponent(entry.name)}`);
-                      const data = await res.json();
-                      if (data.success && data.data.length > 0) {
-                        router.push(`/school/${data.data[0].id}`);
-                      }
-                    } catch { /* silent */ }
-                  }}
+                  onClick={() => entry.id && router.push(`/school/${entry.id}`)}
                   className="w-full grid grid-cols-[40px_1fr_80px_50px_70px] gap-2 items-center px-5 py-3.5 hover:bg-white/[0.06] transition-all cursor-pointer text-left group"
                 >
                   <div className="text-center">
