@@ -177,12 +177,14 @@ export function RegionLeaderboard({ region }: RegionLeaderboardProps) {
   return (
     <div className="w-full max-w-5xl mx-auto">
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Map */}
-        <div className="lg:w-[320px] shrink-0">
-          <KoreaMap
-            selectedRegion={region}
-            onSelectRegion={(r) => router.push(`/region/${encodeURIComponent(r)}`)}
-          />
+        {/* Map - hidden on mobile, sidebar on desktop */}
+        <div className="hidden lg:block lg:w-[280px] shrink-0">
+          <div className="sticky top-20">
+            <KoreaMap
+              selectedRegion={region}
+              onSelectRegion={(r) => router.push(`/region/${encodeURIComponent(r)}`)}
+            />
+          </div>
         </div>
         {/* Leaderboard */}
         <div className="flex-1 min-w-0 space-y-6">
