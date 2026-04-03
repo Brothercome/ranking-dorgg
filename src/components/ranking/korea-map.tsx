@@ -85,7 +85,7 @@ export function KoreaMap({ selectedRegion, onSelectRegion }: KoreaMapProps) {
 
   return (
     <div className="relative bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-3">
-      <svg viewBox="40 60 500 620" className="w-full h-auto" style={{ maxHeight: "480px" }}>
+      <svg viewBox="100 70 380 550" className="w-full h-auto">
         <defs>
           <filter id="glow">
             <feGaussianBlur stdDeviation="3" result="blur" />
