@@ -134,7 +134,7 @@ export function LeaderboardPreview() {
                       }
                     } catch { /* silent */ }
                   }}
-                  className="w-full grid grid-cols-[40px_1fr_80px_50px_70px] gap-2 items-center px-5 py-3.5 hover:bg-white/[0.03] transition-colors text-left"
+                  className="w-full grid grid-cols-[40px_1fr_80px_50px_70px] gap-2 items-center px-5 py-3.5 hover:bg-white/[0.06] transition-all cursor-pointer text-left group"
                 >
                   <div className="text-center">
                     {entry.rank <= 3 ? (
@@ -143,7 +143,7 @@ export function LeaderboardPreview() {
                       <span className="text-sm font-bold text-muted-foreground">{entry.rank}</span>
                     )}
                   </div>
-                  <span className="text-sm font-medium truncate">{entry.name}</span>
+                  <span className="text-sm font-medium truncate group-hover:text-white transition-colors">{entry.name}</span>
                   <span className="text-xs text-muted-foreground truncate">{entry.region}</span>
                   <span className="text-xs text-muted-foreground">{entry.memberCount}명</span>
                   <span className="text-right text-sm font-bold text-primary">{entry.score.toLocaleString()}</span>
@@ -166,7 +166,7 @@ export function LeaderboardPreview() {
                 <button
                   key={entry.rank}
                   onClick={() => router.push(`/region/${encodeURIComponent(entry.region)}`)}
-                  className="w-full grid grid-cols-[40px_1fr_50px_50px_70px] gap-2 items-center px-5 py-3.5 hover:bg-white/[0.03] transition-colors text-left"
+                  className="w-full grid grid-cols-[40px_1fr_50px_50px_70px] gap-2 items-center px-5 py-3.5 hover:bg-white/[0.06] transition-all cursor-pointer text-left group"
                 >
                   <div className="text-center">
                     {entry.rank <= 3 ? (
@@ -175,7 +175,7 @@ export function LeaderboardPreview() {
                       <span className="text-sm font-bold text-muted-foreground">{entry.rank}</span>
                     )}
                   </div>
-                  <span className="text-sm font-medium truncate">{entry.region}</span>
+                  <span className="text-sm font-medium truncate group-hover:text-white transition-colors">{entry.region}</span>
                   <span className="text-xs text-muted-foreground">{entry.schoolCount}개</span>
                   <span className="text-xs text-muted-foreground">{entry.playerCount}명</span>
                   <span className="text-right text-sm font-bold text-primary">{entry.score.toLocaleString()}</span>
