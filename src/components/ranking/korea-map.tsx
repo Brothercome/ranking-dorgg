@@ -84,8 +84,8 @@ export function KoreaMap({ selectedRegion, onSelectRegion }: KoreaMapProps) {
   const [hovered, setHovered] = useState<string | null>(null);
 
   return (
-    <div className="relative bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-3">
-      <svg viewBox="85 75 310 470" className="w-full h-auto">
+    <div className="relative bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-1">
+      <svg viewBox="112 90 220 410" className="w-full h-auto">
         <defs>
           <filter id="glow">
             <feGaussianBlur stdDeviation="3" result="blur" />
