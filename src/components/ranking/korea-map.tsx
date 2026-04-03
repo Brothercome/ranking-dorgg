@@ -7,161 +7,138 @@ interface KoreaMapProps {
   onSelectRegion: (region: string) => void;
 }
 
-interface RegionData {
-  path: string;
-  label: string;
-  labelX: number;
-  labelY: number;
-}
-
-const REGIONS: Record<string, RegionData> = {
+// Simplified but geographically accurate SVG paths for South Korea's 17 regions
+// Viewbox: 0 0 800 1000, oriented with north at top
+const REGIONS: Record<string, { d: string; cx: number; cy: number; label: string }> = {
   "서울특별시": {
-    path: "M128,108 L138,104 L144,110 L140,118 L130,117 Z",
-    label: "서울", labelX: 136, labelY: 112,
+    d: "M310,270 L325,262 L340,268 L342,280 L330,288 L315,285 Z",
+    cx: 326, cy: 276, label: "서울",
   },
   "인천광역시": {
-    path: "M110,106 L125,100 L128,110 L126,120 L112,118 L108,112 Z",
-    label: "인천", labelX: 118, labelY: 112,
+    d: "M270,268 L290,258 L310,270 L315,285 L300,295 L275,290 L265,278 Z",
+    cx: 290, cy: 278, label: "인천",
   },
   "경기도": {
-    path: "M100,80 L140,75 L160,85 L165,100 L148,104 L144,100 L138,102 L128,106 L125,98 L110,104 L106,110 L112,120 L126,122 L142,120 L150,108 L168,108 L170,125 L155,140 L125,145 L105,135 L95,115 Z",
-    label: "경기", labelX: 138, labelY: 132,
+    d: "M280,210 L320,195 L370,200 L390,220 L395,250 L380,270 L365,290 L350,310 L330,320 L300,325 L275,310 L260,295 L265,278 L270,268 L290,258 L310,270 L325,262 L340,268 L342,280 L330,288 L315,285 L300,295 L275,290 L260,270 L255,245 L265,220 Z",
+    cx: 330, cy: 260, label: "경기",
   },
   "강원특별자치도": {
-    path: "M160,55 L200,50 L230,65 L240,90 L235,115 L220,135 L195,140 L170,128 L168,108 L150,108 L148,104 L165,100 L160,85 Z",
-    label: "강원", labelX: 200, labelY: 95,
+    d: "M370,200 L420,170 L490,160 L540,180 L560,210 L550,260 L530,310 L500,340 L460,350 L420,340 L395,310 L380,270 L395,250 L390,220 Z",
+    cx: 470, cy: 260, label: "강원",
   },
   "충청북도": {
-    path: "M140,140 L170,128 L195,140 L200,160 L185,178 L160,180 L145,170 L135,155 Z",
-    label: "충북", labelX: 168, labelY: 158,
-  },
-  "세종특별자치시": {
-    path: "M120,158 L135,155 L138,165 L130,172 L118,168 Z",
-    label: "세종", labelX: 128, labelY: 165,
-  },
-  "대전광역시": {
-    path: "M130,172 L145,170 L148,180 L140,188 L128,184 Z",
-    label: "대전", labelX: 138, labelY: 180,
+    d: "M350,310 L395,310 L420,340 L430,380 L420,420 L390,430 L360,420 L340,400 L330,370 L325,340 L330,320 Z",
+    cx: 375, cy: 370, label: "충북",
   },
   "충청남도": {
-    path: "M75,135 L105,135 L125,145 L140,140 L135,155 L120,158 L118,168 L130,172 L128,184 L140,188 L130,200 L105,205 L80,195 L65,170 L60,150 Z",
-    label: "충남", labelX: 95, labelY: 170,
+    d: "M240,340 L275,310 L300,325 L330,320 L325,340 L330,370 L340,400 L320,420 L290,430 L260,420 L230,400 L220,370 Z",
+    cx: 280, cy: 375, label: "충남",
+  },
+  "세종특별자치시": {
+    d: "M320,345 L335,340 L340,355 L330,365 L318,358 Z",
+    cx: 330, cy: 352, label: "세종",
+  },
+  "대전광역시": {
+    d: "M335,395 L355,388 L365,400 L358,415 L340,418 L330,408 Z",
+    cx: 348, cy: 404, label: "대전",
   },
   "전북특별자치도": {
-    path: "M80,195 L105,205 L130,200 L140,188 L148,180 L160,180 L165,195 L155,215 L130,225 L95,225 L75,210 Z",
-    label: "전북", labelX: 120, labelY: 210,
+    d: "M230,430 L260,420 L290,430 L320,420 L340,445 L335,480 L310,510 L275,520 L240,505 L215,480 L210,450 Z",
+    cx: 278, cy: 470, label: "전북",
   },
   "광주광역시": {
-    path: "M100,240 L115,235 L120,245 L112,252 L98,248 Z",
-    label: "광주", labelX: 110, labelY: 244,
+    d: "M260,545 L278,538 L288,550 L282,565 L265,565 L255,555 Z",
+    cx: 272, cy: 553, label: "광주",
   },
   "전라남도": {
-    path: "M60,225 L75,210 L95,225 L130,225 L135,235 L120,245 L115,235 L100,240 L98,248 L112,252 L115,260 L130,265 L125,280 L105,290 L80,285 L55,270 L45,250 L50,235 Z",
-    label: "전남", labelX: 90, labelY: 265,
+    d: "M200,510 L240,505 L275,520 L310,510 L320,540 L310,580 L290,610 L260,640 L230,660 L190,650 L160,620 L155,580 L165,545 L180,520 Z",
+    cx: 240, cy: 580, label: "전남",
   },
   "경상북도": {
-    path: "M185,178 L200,160 L195,140 L220,135 L235,115 L255,125 L265,150 L260,180 L245,200 L225,210 L210,205 L195,210 L180,200 L175,190 Z",
-    label: "경북", labelX: 225, labelY: 170,
+    d: "M420,340 L460,350 L500,340 L540,360 L570,390 L580,430 L575,470 L555,500 L520,510 L490,500 L460,480 L440,460 L420,420 L430,380 Z",
+    cx: 500, cy: 420, label: "경북",
   },
   "대구광역시": {
-    path: "M195,210 L210,205 L218,215 L210,225 L198,222 Z",
-    label: "대구", labelX: 207, labelY: 216,
+    d: "M475,460 L498,452 L510,468 L502,485 L482,488 L470,475 Z",
+    cx: 490, cy: 472, label: "대구",
   },
   "경상남도": {
-    path: "M130,225 L155,215 L165,195 L160,180 L175,190 L180,200 L195,210 L198,222 L210,225 L218,215 L225,210 L235,220 L230,245 L215,260 L190,265 L165,255 L145,245 L135,235 Z",
-    label: "경남", labelX: 180, labelY: 240,
+    d: "M340,445 L390,430 L420,420 L440,460 L460,480 L490,500 L520,510 L530,545 L510,580 L480,600 L440,610 L400,600 L370,570 L345,530 L335,480 Z",
+    cx: 440, cy: 530, label: "경남",
   },
   "울산광역시": {
-    path: "M245,200 L260,195 L265,210 L255,218 L245,212 Z",
-    label: "울산", labelX: 255, labelY: 207,
+    d: "M545,490 L570,480 L585,495 L580,515 L560,520 L542,510 Z",
+    cx: 562, cy: 502, label: "울산",
   },
   "부산광역시": {
-    path: "M215,260 L235,252 L245,260 L240,272 L222,270 Z",
-    label: "부산", labelX: 232, labelY: 264,
+    d: "M510,570 L535,558 L555,570 L550,592 L530,600 L510,590 Z",
+    cx: 532, cy: 578, label: "부산",
   },
   "제주특별자치도": {
-    path: "M80,340 L130,335 L140,350 L130,365 L80,368 L65,355 Z",
-    label: "제주", labelX: 105, labelY: 352,
+    d: "M230,780 L280,770 L330,775 L350,795 L340,820 L300,835 L250,830 L220,810 L215,795 Z",
+    cx: 285, cy: 800, label: "제주",
   },
 };
 
 export function KoreaMap({ selectedRegion, onSelectRegion }: KoreaMapProps) {
-  const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
-  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const [hovered, setHovered] = useState<string | null>(null);
 
   return (
-    <div className="relative rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-4">
-      <h3 className="text-sm font-medium text-muted-foreground mb-2 text-center">지역 선택</h3>
+    <div className="relative bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-4">
       <svg
-        viewBox="40 40 240 340"
-        className="w-full h-auto max-h-[420px]"
-        style={{ aspectRatio: "240/340" }}
+        viewBox="130 140 500 720"
+        className="w-full h-auto"
+        style={{ maxHeight: "500px" }}
       >
-        {Object.entries(REGIONS).map(([name, data]) => {
+        {/* Background glow for selected */}
+        <defs>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {Object.entries(REGIONS).map(([name, region]) => {
           const isSelected = name === selectedRegion;
-          const isHovered = name === hoveredRegion;
+          const isHovered = name === hovered;
 
           return (
             <g key={name}>
               <path
-                d={data.path}
-                fill={isSelected ? "#4a3a8e" : isHovered ? "#2a2a4e" : "#1a1a2e"}
-                stroke={isSelected ? "rgba(140,120,255,0.6)" : "rgba(255,255,255,0.1)"}
+                d={region.d}
+                fill={isSelected ? "#6d5cae" : isHovered ? "#3a3a5e" : "#1e1e32"}
+                stroke={isSelected ? "#a78bfa" : isHovered ? "#666" : "rgba(255,255,255,0.12)"}
                 strokeWidth={isSelected ? 2 : 1}
-                className="cursor-pointer transition-colors duration-150"
+                className="cursor-pointer transition-all duration-200"
+                filter={isSelected ? "url(#glow)" : undefined}
                 onClick={() => onSelectRegion(name)}
-                onMouseEnter={(e) => {
-                  setHoveredRegion(name);
-                  const svg = e.currentTarget.ownerSVGElement;
-                  if (svg) {
-                    const pt = svg.createSVGPoint();
-                    pt.x = data.labelX;
-                    pt.y = data.labelY;
-                    const ctm = svg.getScreenCTM();
-                    if (ctm) {
-                      const screenPt = pt.matrixTransform(ctm);
-                      const rect = svg.closest(".relative")?.getBoundingClientRect();
-                      if (rect) {
-                        setTooltipPos({
-                          x: screenPt.x - rect.left,
-                          y: screenPt.y - rect.top - 28,
-                        });
-                      }
-                    }
-                  }
-                }}
-                onMouseLeave={() => setHoveredRegion(null)}
+                onMouseEnter={() => setHovered(name)}
+                onMouseLeave={() => setHovered(null)}
               />
-              {(isSelected || isHovered) && (
-                <text
-                  x={data.labelX}
-                  y={data.labelY}
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  className="pointer-events-none select-none"
-                  fill="white"
-                  fontSize="9"
-                  fontWeight="600"
-                >
-                  {data.label}
-                </text>
-              )}
+              {/* Label */}
+              <text
+                x={region.cx}
+                y={region.cy}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={name === "세종특별자치시" || name === "서울특별시" ? 9 : 12}
+                fill={isSelected ? "#fff" : isHovered ? "#ddd" : "rgba(255,255,255,0.4)"}
+                className="pointer-events-none select-none font-medium"
+              >
+                {region.label}
+              </text>
             </g>
           );
         })}
       </svg>
 
       {/* Tooltip */}
-      {hoveredRegion && (
-        <div
-          className="absolute pointer-events-none z-10 px-2.5 py-1 rounded-md bg-black/80 border border-white/10 text-xs text-white whitespace-nowrap"
-          style={{
-            left: tooltipPos.x,
-            top: tooltipPos.y,
-            transform: "translateX(-50%)",
-          }}
-        >
-          {hoveredRegion}
+      {hovered && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg text-xs text-white whitespace-nowrap z-10">
+          {hovered}
         </div>
       )}
     </div>
