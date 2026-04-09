@@ -314,8 +314,11 @@ const GAMES: GameType[] = ["lol", "valorant"];
 
 export default function PlayerPage() {
   const params = useParams();
-  const name = decodeURIComponent(params.name as string);
-  const tag = decodeURIComponent(params.tag as string);
+  const slug = decodeURIComponent(params.slug as string);
+  // Parse "강타갭-KR1" → name="강타갭", tag="KR1"
+  const lastDash = slug.lastIndexOf("-");
+  const name = lastDash > 0 ? slug.slice(0, lastDash) : slug;
+  const tag = lastDash > 0 ? slug.slice(lastDash + 1) : "kr1";
 
   const [activeTab, setActiveTab] = useState<GameType>("lol");
   const [gameData, setGameData] = useState<Record<GameType, GameData>>({

@@ -178,7 +178,7 @@ export function UnifiedSearch() {
               id: `player-lol-${g.gameAccountId}`,
               label: `${g.gameName}#${g.tagLine}`,
               sublabel: `${GAME_LABELS[g.gameType]} · ${g.tier} ${g.rank}`.trim(),
-              href: `/player/${encodeURIComponent(g.gameName)}/${encodeURIComponent(g.tagLine)}`,
+              href: `/player/${encodeURIComponent(g.gameName)}-${encodeURIComponent(g.tagLine)}`,
             });
           }
           if (valRes.status === "fulfilled" && valRes.value.success) {
@@ -188,7 +188,7 @@ export function UnifiedSearch() {
               id: `player-val-${g.gameAccountId}`,
               label: `${g.gameName}#${g.tagLine}`,
               sublabel: `${GAME_LABELS[g.gameType]} · ${g.tier} ${g.rank}`.trim(),
-              href: `/player/${encodeURIComponent(g.gameName)}/${encodeURIComponent(g.tagLine)}`,
+              href: `/player/${encodeURIComponent(g.gameName)}-${encodeURIComponent(g.tagLine)}`,
             });
           }
         } catch { /* silent */ }
@@ -247,7 +247,7 @@ export function UnifiedSearch() {
                     const tag = hasHash ? q.split("#")[1]?.trim() || "kr1" : "kr1";
                     if (name) {
                       setShowDropdown(false);
-                      router.push(`/player/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`);
+                      router.push(`/player/${encodeURIComponent(name)}-${encodeURIComponent(tag)}`);
                     }
                   }
                 }

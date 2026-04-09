@@ -17,7 +17,7 @@ function HeaderSearch() {
     const name = hasHash ? q.split("#")[0].trim() : q;
     const tag = hasHash ? q.split("#")[1]?.trim() || "kr1" : "kr1";
     if (name) {
-      router.push(`/player/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`);
+      router.push(`/player/${encodeURIComponent(name)}-${encodeURIComponent(tag)}`);
       setQuery("");
       inputRef.current?.blur();
     }
