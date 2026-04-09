@@ -234,8 +234,23 @@ export function UnifiedSearch() {
             onFocus={() => { if (suggestions.length > 0) setShowDropdown(true); }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                const first = suggestions.find((s) => s.href !== "#");
-                if (first) navigate(first);
+                const q = query.trim();
+                if (q) {
+                  // If there's a dropdown suggestion, use it
+                  const first = suggestions.find((s) => s.href !== "#");
+                  if (first) {
+                    navigate(first);
+                  } else {
+                    // Direct navigate: auto-append #kr1 if no #
+                    const hasHash = q.includes("#");
+                    const name = hasHash ? q.split("#")[0].trim() : q;
+                    const tag = hasHash ? q.split("#")[1]?.trim() || "kr1" : "kr1";
+                    if (name) {
+                      setShowDropdown(false);
+                      router.push(`/player/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`);
+                    }
+                  }
+                }
               }
               if (e.key === "Escape") setShowDropdown(false);
             }}

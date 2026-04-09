@@ -14,20 +14,15 @@ function HeaderSearch() {
   const submit = useCallback(() => {
     const q = query.trim();
     if (!q) return;
-    if (q.includes("#")) {
-      const [name, tag] = q.split("#");
-      if (name && tag) {
-        router.push(`/player/${encodeURIComponent(name.trim())}/${encodeURIComponent(tag.trim())}`);
-        setQuery("");
-        setOpen(false);
-        inputRef.current?.blur();
-        return;
-      }
+    const hasHash = q.includes("#");
+    const name = hasHash ? q.split("#")[0].trim() : q;
+    const tag = hasHash ? q.split("#")[1]?.trim() || "kr1" : "kr1";
+    if (name) {
+      router.push(`/player/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`);
+      setQuery("");
+      setOpen(false);
+      inputRef.current?.blur();
     }
-    // Fallback: go home with search
-    router.push(`/`);
-    setQuery("");
-    setOpen(false);
   }, [query, router]);
 
   // Close on route change
