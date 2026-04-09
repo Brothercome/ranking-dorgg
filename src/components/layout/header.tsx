@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useRef, useCallback } from "react";
 
 function HeaderSearch() {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const submit = useCallback(() => {
@@ -20,63 +19,56 @@ function HeaderSearch() {
     if (name) {
       router.push(`/player/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`);
       setQuery("");
-      setOpen(false);
       inputRef.current?.blur();
     }
   }, [query, router]);
 
-  // Close on route change
-  const pathname = usePathname();
-  useEffect(() => { setOpen(false); setQuery(""); }, [pathname]);
-
   return (
-    <div className="relative">
-      <button
-        onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 0); }}
-        className={`flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-muted-foreground/50 hover:border-white/20 transition-colors ${open ? "hidden" : ""}`}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <div className="flex items-center flex-1 max-w-md mx-4">
+      <div className="relative w-full">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/40"
+        >
           <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
         </svg>
-        <span className="hidden sm:inline">검색</span>
-      </button>
-
-      {open && (
-        <div className="flex items-center gap-2">
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") submit();
-              if (e.key === "Escape") { setOpen(false); setQuery(""); }
-            }}
-            onBlur={() => { if (!query) setOpen(false); }}
-            placeholder="닉네임#태그"
-            className="w-36 sm:w-48 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm outline-none placeholder:text-muted-foreground/40 focus:border-white/20"
-          />
-        </div>
-      )}
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") submit();
+          }}
+          placeholder="소환사 검색 (닉네임#태그)"
+          className="w-full rounded-xl border border-white/10 bg-white/[0.03] pl-9 pr-3 py-2 text-sm outline-none placeholder:text-muted-foreground/40 focus:border-white/20 transition-colors"
+        />
+      </div>
     </div>
   );
 }
 
 export function Header() {
-  const pathname = usePathname();
-  const isHome = pathname === "/";
-
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/60 backdrop-blur-xl">
-      <div className="flex h-16 items-center justify-between px-4 max-w-5xl mx-auto">
+      <div className="flex h-16 items-center px-4 max-w-5xl mx-auto">
         {/* Logo - Home */}
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2 shrink-0">
           <Image src="/logo.svg" alt="도르" width={80} height={80} />
         </Link>
 
+        {/* Search - always visible, centered */}
+        <HeaderSearch />
+
         {/* Nav */}
-        <nav className="flex items-center gap-6">
-          {!isHome && <HeaderSearch />}
+        <nav className="flex items-center gap-6 shrink-0">
           <Link
             href="/"
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
