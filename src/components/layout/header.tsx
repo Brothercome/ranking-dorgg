@@ -158,21 +158,9 @@ function HeaderSearch() {
   const submit = useCallback(() => {
     const q = query.trim();
     if (!q) return;
-    // Use first suggestion if available
-    const first = suggestions.find((s) => s.href !== "#");
-    if (first) {
-      navigate(first);
-      return;
-    }
-    // Direct navigate
-    const hasHash = q.includes("#");
-    const name = hasHash ? q.split("#")[0].trim() : q;
-    const tag = hasHash ? q.split("#")[1]?.trim() || "kr1" : "kr1";
-    if (name) {
-      setShowDropdown(false);
-      router.push(`/player/${encodeURIComponent(name)}-${encodeURIComponent(tag)}`);
-    }
-  }, [query, suggestions, router]);
+    setShowDropdown(false);
+    router.push(`/search?q=${encodeURIComponent(q)}`);
+  }, [query, router]);
 
   // Group suggestions by category
   const grouped = suggestions.reduce<{ category: string; items: SearchSuggestion[] }[]>((acc, s) => {
