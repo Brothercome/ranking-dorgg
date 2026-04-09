@@ -43,6 +43,7 @@ export interface MatchHistory {
     cs?: number;           // LoL only: creep score
     damage?: number;
     score?: number;        // Valorant: combat score
+    items?: number[];      // LoL: item IDs (0 values filtered out)
   };
   participants: MatchParticipant[];
   raw: Record<string, unknown>;

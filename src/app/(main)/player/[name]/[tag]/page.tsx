@@ -168,6 +168,21 @@ function MatchCard({ match }: { match: MatchHistory }) {
           </span>
           <KDAText kills={player.kills} deaths={player.deaths} assists={player.assists} />
         </div>
+        {player.items && player.items.length > 0 && (
+          <div className="flex items-center gap-0.5 mt-1">
+            {player.items.map((itemId, i) => (
+              <Image
+                key={i}
+                src={`https://ddragon.leagueoflegends.com/cdn/14.24.1/img/item/${itemId}.png`}
+                alt={`item ${itemId}`}
+                width={20}
+                height={20}
+                className="rounded"
+                unoptimized
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* CS & Damage */}
@@ -217,6 +232,73 @@ function MatchSkeleton() {
   );
 }
 
+// --- School Ranking ---
+
+interface SchoolRankInfo {
+  organizationId: string;
+  organizationName: string;
+  schoolLevel: string | null;
+  region: string | null;
+  myRank: number | null;
+  totalParticipants: number;
+}
+
+function SchoolRankBadge({ ranks, gameType }: { ranks: SchoolRankInfo[]; gameType: GameType }) {
+  if (ranks.length === 0) {
+    return (
+      <Link
+        href="/search"
+        className="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-white/10 hover:border-white/20 transition-colors"
+      >
+        <div className="w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center text-muted-foreground/40 text-sm">+</div>
+        <div>
+          <div className="text-sm text-muted-foreground/60">학교를 등록하면 랭킹을 확인할 수 있어요</div>
+        </div>
+      </Link>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {ranks.map((r) => {
+        const pct = r.totalParticipants > 0 && r.myRank
+          ? Math.round((r.myRank / r.totalParticipants) * 100)
+          : null;
+        return (
+          <Link
+            key={r.organizationId}
+            href={`/school/${r.organizationId}`}
+            className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.05] transition-colors"
+          >
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center shrink-0">
+              <span className="text-lg font-bold text-blue-400">
+                {r.myRank ?? "?"}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium truncate">{r.organizationName}</div>
+              <div className="text-xs text-muted-foreground">
+                {r.region && <span>{r.region} </span>}
+                {r.schoolLevel && <span>{r.schoolLevel === "high" ? "고등학교" : r.schoolLevel === "middle" ? "중학교" : "대학교"}</span>}
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              {r.myRank && (
+                <div className="text-sm font-semibold">{r.myRank}등 <span className="text-muted-foreground font-normal">/ {r.totalParticipants}명</span></div>
+              )}
+              {pct !== null && (
+                <div className={`text-xs font-medium ${pct <= 10 ? "text-orange-400" : pct <= 30 ? "text-blue-400" : "text-muted-foreground"}`}>
+                  상위 {pct}%
+                </div>
+              )}
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
 // --- Game Tab Data ---
 
 interface GameData {
@@ -244,6 +326,9 @@ export default function PlayerPage() {
     lol: false,
     valorant: false,
   });
+  const [schoolRanks, setSchoolRanks] = useState<SchoolRankInfo[]>([]);
+  const [schoolRankLoading, setSchoolRankLoading] = useState(false);
+  const [schoolRankFetched, setSchoolRankFetched] = useState(false);
 
   // Fetch both profiles in parallel
   useEffect(() => {
@@ -318,6 +403,36 @@ export default function PlayerPage() {
 
     fetchMatches();
   }, [activeTab, gameData, matchesFetched]);
+
+  // Fetch school ranking for active tab
+  useEffect(() => {
+    const current = gameData[activeTab];
+    if (!current.profile || schoolRankFetched) return;
+
+    async function fetchSchoolRank() {
+      setSchoolRankLoading(true);
+      try {
+        const profile = gameData[activeTab].profile!;
+        const params = new URLSearchParams({
+          gameType: activeTab,
+          gameName: profile.gameName,
+          tagLine: profile.tagLine,
+        });
+        const res = await fetch(`/api/player/school-rank?${params}`);
+        const data = await res.json();
+        if (data.success) {
+          setSchoolRanks(data.data);
+        }
+      } catch {
+        // silent
+      } finally {
+        setSchoolRankLoading(false);
+        setSchoolRankFetched(true);
+      }
+    }
+
+    fetchSchoolRank();
+  }, [activeTab, gameData, schoolRankFetched]);
 
   // Auto-select first available game
   useEffect(() => {
@@ -398,6 +513,16 @@ export default function PlayerPage() {
 
           {/* Rank Card - prominent */}
           {current.profile && <RankCard profile={current.profile} />}
+
+          {/* School Ranking */}
+          <div>
+            <h2 className="text-sm font-medium text-muted-foreground mb-3">학교 랭킹</h2>
+            {schoolRankLoading ? (
+              <div className="h-[60px] rounded-xl bg-white/[0.03] border border-white/5 animate-pulse" />
+            ) : (
+              <SchoolRankBadge ranks={schoolRanks} gameType={activeTab} />
+            )}
+          </div>
 
           {/* Match History */}
           <div>

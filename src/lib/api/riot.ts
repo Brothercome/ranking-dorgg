@@ -47,6 +47,13 @@ interface RiotMatchParticipant {
   neutralMinionsKilled: number;
   totalDamageDealtToChampions: number;
   win: boolean;
+  item0: number;
+  item1: number;
+  item2: number;
+  item3: number;
+  item4: number;
+  item5: number;
+  item6: number;
 }
 
 interface RiotMatchDetail {
@@ -173,6 +180,7 @@ export const riotApiClient: GameApiAdapter = {
             assists: me.assists,
             cs: me.totalMinionsKilled + me.neutralMinionsKilled,
             damage: me.totalDamageDealtToChampions,
+            items: [me.item0, me.item1, me.item2, me.item3, me.item4, me.item5, me.item6].filter(id => id > 0),
           },
           participants,
           raw: match as unknown as Record<string, unknown>,
