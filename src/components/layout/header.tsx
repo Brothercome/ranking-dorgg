@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useCallback } from "react";
 
 function HeaderSearch() {
@@ -56,6 +56,9 @@ function HeaderSearch() {
 }
 
 export function Header() {
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/60 backdrop-blur-xl">
       <div className="flex h-16 items-center px-4 max-w-5xl mx-auto">
@@ -64,8 +67,8 @@ export function Header() {
           <Image src="/logo.svg" alt="도르" width={80} height={80} />
         </Link>
 
-        {/* Search - always visible, centered */}
-        <HeaderSearch />
+        {/* Search - hidden on home (has its own search) */}
+        {!isHome && <HeaderSearch />}
 
         {/* Nav */}
         <nav className="flex items-center gap-6 shrink-0">
