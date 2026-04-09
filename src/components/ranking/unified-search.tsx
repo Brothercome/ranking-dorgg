@@ -178,7 +178,7 @@ export function UnifiedSearch() {
               id: `player-lol-${g.gameAccountId}`,
               label: `${g.gameName}#${g.tagLine}`,
               sublabel: `${GAME_LABELS[g.gameType]} · ${g.tier} ${g.rank}`.trim(),
-              href: `/rank/${g.gameAccountId}?game=${g.gameType}`,
+              href: `/player/${encodeURIComponent(g.gameName)}/${encodeURIComponent(g.tagLine)}`,
             });
           }
           if (valRes.status === "fulfilled" && valRes.value.success) {
@@ -188,7 +188,7 @@ export function UnifiedSearch() {
               id: `player-val-${g.gameAccountId}`,
               label: `${g.gameName}#${g.tagLine}`,
               sublabel: `${GAME_LABELS[g.gameType]} · ${g.tier} ${g.rank}`.trim(),
-              href: `/rank/${g.gameAccountId}?game=${g.gameType}`,
+              href: `/player/${encodeURIComponent(g.gameName)}/${encodeURIComponent(g.tagLine)}`,
             });
           }
         } catch { /* silent */ }
