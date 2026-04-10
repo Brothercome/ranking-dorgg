@@ -112,10 +112,11 @@ export function UnifiedSearch() {
     }
 
     setIsLoading(true);
-    const items: Suggestion[] = [];
+    const playerItems: Suggestion[] = [];
+    const schoolItems: Suggestion[] = [];
     const hasHash = q.includes("#");
 
-    // Always search schools
+    // Schools
     try {
       const res = await fetch(`/api/org/search?q=${encodeURIComponent(q)}`);
       const data = await res.json();
@@ -124,7 +125,7 @@ export function UnifiedSearch() {
 
         // Schools (max 5)
         schools.slice(0, 5).forEach((s) => {
-          items.push({
+          schoolItems.push({
             category: "school",
             id: `school-${s.id}`,
             label: s.name,
@@ -139,7 +140,7 @@ export function UnifiedSearch() {
           if (s.region && !seenRegions.has(s.region)) seenRegions.add(s.region);
         });
         Array.from(seenRegions).slice(0, 2).forEach((region) => {
-          items.push({
+          schoolItems.push({
             category: "region",
             id: `region-${region}`,
             label: region,
@@ -151,13 +152,15 @@ export function UnifiedSearch() {
     } catch { /* silent */ }
 
     // Cached player search (when no #) - query our DB for previously searched players
+    let cachedPlayerCount = 0;
     if (!hasHash) {
       try {
         const res = await fetch(`/api/search/players?q=${encodeURIComponent(q)}&limit=5`);
         const data = await res.json();
         if (data.success && data.data.length > 0) {
+          cachedPlayerCount = data.data.length;
           data.data.forEach((g: { gameAccountId: string; gameName: string; tagLine: string; tier: string; rank: string; gameType: GameType }) => {
-            items.push({
+            playerItems.push({
               category: "player",
               id: `player-cached-${g.gameAccountId}`,
               label: `${g.gameName}#${g.tagLine}`,
@@ -167,6 +170,36 @@ export function UnifiedSearch() {
           });
         }
       } catch { /* silent */ }
+    }
+
+    // External lookup fallback via op.gg multisearch — when no # and no cached players found
+    if (!hasHash && cachedPlayerCount === 0 && q.length >= 2) {
+      try {
+        const res = await fetch(`/api/search/lookup?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          data.data.forEach((p: { gameName: string; tagLine: string; tier: string; level: number }, i: number) => {
+            playerItems.push({
+              category: "player",
+              id: `player-lookup-${i}-${p.gameName}-${p.tagLine}`,
+              label: `${p.gameName}#${p.tagLine}`,
+              sublabel: `LoL · ${p.tier}${p.level ? ` · Lv.${p.level}` : ""}`,
+              href: `/player/${encodeURIComponent(p.gameName)}-${encodeURIComponent(p.tagLine)}`,
+            });
+          });
+        }
+      } catch { /* silent */ }
+    }
+
+    // Google-style fallback: always offer "search as game ID" when no #
+    if (!hasHash) {
+      playerItems.push({
+        category: "player",
+        id: `player-search-${q}`,
+        label: q,
+        sublabel: "게임 아이디 검색",
+        href: `/search?q=${encodeURIComponent(q)}`,
+      });
     }
 
     // Game IDs when query contains #
@@ -192,7 +225,7 @@ export function UnifiedSearch() {
 
           if (lolRes.status === "fulfilled" && lolRes.value.success) {
             const g: GameResult = lolRes.value.data;
-            items.push({
+            playerItems.push({
               category: "player",
               id: `player-lol-${g.gameAccountId}`,
               label: `${g.gameName}#${g.tagLine}`,
@@ -202,7 +235,7 @@ export function UnifiedSearch() {
           }
           if (valRes.status === "fulfilled" && valRes.value.success) {
             const g: GameResult = valRes.value.data;
-            items.push({
+            playerItems.push({
               category: "player",
               id: `player-val-${g.gameAccountId}`,
               label: `${g.gameName}#${g.tagLine}`,
@@ -214,6 +247,7 @@ export function UnifiedSearch() {
       }
     }
 
+    const items = [...playerItems, ...schoolItems];
     setSuggestions(items);
     setShowDropdown(items.length > 0);
     setIsLoading(false);
