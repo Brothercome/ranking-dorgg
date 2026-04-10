@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { GameType } from "@/types/game";
 import { GAME_LABELS } from "@/types/game";
 
@@ -18,7 +18,6 @@ const RANK_BADGES = ["👑", "🥈", "🥉"];
 const PAGE_SIZE = 10;
 
 export function LeaderboardPreview() {
-  const router = useRouter();
   const [gameType, setGameType] = useState<GameType>("lol");
   const [schools, setSchools] = useState<SchoolRankEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,9 +96,10 @@ export function LeaderboardPreview() {
 
             <div className="divide-y divide-white/5 relative">
               {schools.map((entry) => (
-                <button
+                <Link
                   key={entry.id}
-                  onClick={() => router.push(`/school/${entry.id}`)}
+                  href={`/school/${entry.id}`}
+                  prefetch
                   className="w-full grid grid-cols-[32px_1fr_50px_70px] sm:grid-cols-[40px_1fr_80px_50px_70px] gap-2 items-center px-3 sm:px-5 py-3 sm:py-3.5 hover:bg-white/[0.06] transition-all cursor-pointer text-left group"
                 >
                   <div className="text-center">
@@ -116,7 +116,7 @@ export function LeaderboardPreview() {
                   <span className="hidden sm:block text-xs text-muted-foreground truncate">{entry.region ?? "-"}</span>
                   <span className="text-xs text-muted-foreground text-right sm:text-left">{entry.memberCount}명</span>
                   <span className="text-right text-sm font-bold text-primary">{entry.score.toLocaleString()}</span>
-                </button>
+                </Link>
               ))}
               {schools.length === 0 && (
                 <div className="text-center py-8 text-sm text-muted-foreground">등록된 학교가 없습니다</div>
