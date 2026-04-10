@@ -19,7 +19,6 @@ interface RiotAccount {
 }
 
 interface RiotSummoner {
-  id: string;
   puuid: string;
   profileIconId: number;
   summonerLevel: number;
@@ -103,9 +102,9 @@ export const riotApiClient: GameApiAdapter = {
     );
     if (!summoner) return null;
 
-    // Step 3: Get Ranked data
+    // Step 3: Get Ranked data (by PUUID - by-summoner is deprecated)
     const entries = await riotFetch<RiotLeagueEntry[]>(
-      `${RIOT_KR_BASE}/lol/league/v4/entries/by-summoner/${summoner.id}`
+      `${RIOT_KR_BASE}/lol/league/v4/entries/by-puuid/${account.puuid}`
     );
 
     const soloQueue = entries?.find((e) => e.queueType === "RANKED_SOLO_5x5");
