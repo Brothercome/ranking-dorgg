@@ -41,12 +41,15 @@ export async function POST(
     const { puuid, gameName, tagLine, count } = parsed.data;
     const gameType = game as GameType;
     const adapter = getGameAdapter(gameType);
-    const matches = await adapter.getMatchHistory(puuid, gameName, tagLine, count);
 
-    return NextResponse.json({
-      success: true,
-      data: matches,
-    });
+    try {
+      const matches = await adapter.getMatchHistory(puuid, gameName, tagLine, count);
+      return NextResponse.json({ success: true, data: matches });
+    } catch (apiError) {
+      // API 실패 시 빈 배열로 graceful degradation
+      console.warn(`[matches] ${gameType} API failed:`, apiError);
+      return NextResponse.json({ success: true, data: [], apiFailed: true });
+    }
   } catch (error) {
     console.error("Match history error:", error);
     return NextResponse.json(

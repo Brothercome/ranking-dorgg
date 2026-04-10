@@ -141,17 +141,26 @@ export async function searchFromOpgg(
     const actualName = nameMatch ? nameMatch[1] : gameName;
     const actualTag = tagMatch ? tagMatch[1] : tagLine;
 
+    // puuid 추출 (Riot 매치 히스토리 API에서 필요)
+    const puuidMatch = html.match(/"puuid":"([A-Za-z0-9_-]{50,})"/);
+    const puuid = puuidMatch ? puuidMatch[1] : "";
+
+    // profile_image_url 추출
+    const iconMatch = html.match(/"profile_image_url":"([^"\\]+)"/);
+    const profileIconUrl = iconMatch ? iconMatch[1].replace(/\\\//g, "/") : undefined;
+
     return {
       gameType: "lol",
       gameName: actualName,
       tagLine: actualTag,
-      puuid: "",
+      puuid,
       tier: finalTier,
       rank: finalRank,
       points,
       wins,
       losses,
       tierNumeric: normalizeLolTier(finalTier, finalRank, points),
+      profileIconUrl,
       raw: { source: "opgg" },
     };
   } catch {

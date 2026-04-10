@@ -13,6 +13,9 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { SchoolRegisterModal } from "@/components/ranking/school-register-modal";
+import { ShareButtons } from "@/components/share/share-buttons";
+import { DorggCtaBanner } from "@/components/layout/dorgg-cta-banner";
+import type { RankEntry } from "@/types/ranking";
 
 // --- Helpers ---
 
@@ -671,6 +674,36 @@ export default function PlayerPage() {
               />
             )}
           </div>
+
+          {/* Share CTA — only show if user has school rank */}
+          {!schoolRankLoading && schoolRanks.length > 0 && current.profile && (() => {
+            const topRank = schoolRanks[0];
+            const profile = current.profile;
+            const rankEntry: RankEntry = {
+              rank: topRank.myRank ?? 0,
+              totalParticipants: topRank.totalParticipants,
+              gameAccountId: (profile as GameProfile & { gameAccountId?: string }).gameAccountId ?? "",
+              gameName: profile.gameName,
+              tagLine: profile.tagLine,
+              gameType: activeTab,
+              tier: profile.tier,
+              tierRank: profile.rank,
+              points: profile.points,
+              tierNumeric: profile.tierNumeric,
+              organizationName: topRank.organizationName,
+            };
+            const origin = typeof window !== "undefined" ? window.location.origin : "";
+            const shareUrl = `${origin}/share/${rankEntry.gameAccountId || "p"}?name=${encodeURIComponent(profile.gameName)}&tag=${encodeURIComponent(profile.tagLine)}&tier=${encodeURIComponent(profile.tier)}&tierRank=${encodeURIComponent(profile.rank)}&rank=${rankEntry.rank}&total=${rankEntry.totalParticipants}&school=${encodeURIComponent(topRank.organizationName)}&game=${activeTab}`;
+            return (
+              <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-purple-500/[0.06] to-blue-500/[0.06] p-4 sm:p-5">
+                <ShareButtons rankEntry={rankEntry} shareUrl={shareUrl} />
+              </div>
+            );
+          })()}
+
+          {/* dor.gg CTA Banner */}
+          <DorggCtaBanner placement="player_profile" />
+
 
           {/* Match History */}
           <div>
