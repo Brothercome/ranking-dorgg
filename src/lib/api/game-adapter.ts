@@ -1,10 +1,10 @@
 import type { GameType, GameApiAdapter } from "@/types/game";
 import { riotApiClient } from "./riot";
-import { henrikApiClient } from "./henrik";
+import { riotValorantClient } from "./riot-valorant";
 
 const adapters: Record<GameType, GameApiAdapter> = {
   lol: riotApiClient,
-  valorant: henrikApiClient,
+  valorant: riotValorantClient,
 };
 
 export function getGameAdapter(gameType: GameType): GameApiAdapter {

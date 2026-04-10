@@ -150,6 +150,25 @@ export function UnifiedSearch() {
       }
     } catch { /* silent */ }
 
+    // Cached player search (when no #) - query our DB for previously searched players
+    if (!hasHash) {
+      try {
+        const res = await fetch(`/api/search/players?q=${encodeURIComponent(q)}&limit=5`);
+        const data = await res.json();
+        if (data.success && data.data.length > 0) {
+          data.data.forEach((g: { gameAccountId: string; gameName: string; tagLine: string; tier: string; rank: string; gameType: GameType }) => {
+            items.push({
+              category: "player",
+              id: `player-cached-${g.gameAccountId}`,
+              label: `${g.gameName}#${g.tagLine}`,
+              sublabel: `${GAME_LABELS[g.gameType]} · ${g.tier}${g.rank ? ` ${g.rank}` : ""}`.trim(),
+              href: `/player/${encodeURIComponent(g.gameName)}-${encodeURIComponent(g.tagLine)}`,
+            });
+          });
+        }
+      } catch { /* silent */ }
+    }
+
     // Game IDs when query contains #
     if (hasHash) {
       const parts = q.split("#");

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getGameAdapter } from "@/lib/api/game-adapter";
 import { searchFromOpgg } from "@/lib/api/opgg";
+import { henrikApiClient } from "@/lib/api/henrik";
 import { supabase } from "@/lib/db";
 import { checkRateLimit } from "@/lib/cache/rate-limit";
 import type { GameType, GameProfile } from "@/types/game";
@@ -98,6 +99,16 @@ export async function POST(
         if (profile) console.log(`[search] op.gg fallback success: ${gameName}#${tagLine}`);
       } catch (e) {
         console.warn("[search] op.gg fallback failed:", e);
+      }
+    }
+
+    // 3b-2: Valorant이고 Riot API 실패 시 Henrik fallback
+    if (!profile && gameType === "valorant") {
+      try {
+        profile = await henrikApiClient.searchPlayer(gameName, tagLine);
+        if (profile) console.log(`[search] henrik fallback success: ${gameName}#${tagLine}`);
+      } catch (e) {
+        console.warn("[search] henrik fallback failed:", e);
       }
     }
 

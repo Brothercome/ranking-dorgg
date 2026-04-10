@@ -133,31 +133,39 @@ function SearchResults() {
       .then((data) => (data.success ? data.data : []))
       .catch(() => []);
 
-    // Try game search - parse name#tag or just search with #kr1
     const hasHash = query.includes("#");
-    const gameName = hasHash ? query.split("#")[0].trim() : query.trim();
-    const tagLine = hasHash ? query.split("#")[1]?.trim() || "kr1" : "kr1";
+    let playerPromise: Promise<PlayerResult[]>;
 
-    const playerPromise = gameName
-      ? Promise.allSettled([
-          fetch("/api/search/lol", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ gameName, tagLine }),
-          }).then((r) => r.json()),
-          fetch("/api/search/valorant", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ gameName, tagLine }),
-          }).then((r) => r.json()),
-        ]).then((results) =>
-          results
-            .filter((r): r is PromiseFulfilledResult<{ success: boolean; data: PlayerResult }> =>
-              r.status === "fulfilled" && r.value.success
-            )
-            .map((r) => r.value.data)
-        )
-      : Promise.resolve([]);
+    if (hasHash) {
+      // Exact search: name#tag via Riot API (live)
+      const gameName = query.split("#")[0].trim();
+      const tagLine = query.split("#")[1]?.trim() || "kr1";
+
+      playerPromise = Promise.allSettled([
+        fetch("/api/search/lol", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gameName, tagLine }),
+        }).then((r) => r.json()),
+        fetch("/api/search/valorant", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gameName, tagLine }),
+        }).then((r) => r.json()),
+      ]).then((results) =>
+        results
+          .filter((r): r is PromiseFulfilledResult<{ success: boolean; data: PlayerResult }> =>
+            r.status === "fulfilled" && r.value.success
+          )
+          .map((r) => r.value.data)
+      );
+    } else {
+      // Name-only search: query cached players in our DB
+      playerPromise = fetch(`/api/search/players?q=${encodeURIComponent(query.trim())}`)
+        .then((r) => r.json())
+        .then((data) => (data.success ? data.data : []))
+        .catch(() => []);
+    }
 
     const [schoolResults, playerResults] = await Promise.all([schoolPromise, playerPromise]);
 
