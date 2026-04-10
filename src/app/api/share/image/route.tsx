@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
             display: "flex",
           }}
         >
-          랭킹도르그
+          랭킹 도르
         </div>
 
         {/* Game type */}

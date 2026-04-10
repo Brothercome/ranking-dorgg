@@ -19,7 +19,7 @@ export default function HomePage() {
       <div className="text-center mb-6 sm:mb-10 max-w-2xl px-2">
         <Image
           src="/dorranking.svg"
-          alt="랭킹도르그"
+          alt="랭킹 도르"
           width={300}
           height={50}
           className="mx-auto mb-3 sm:mb-4 w-[220px] sm:w-[300px] h-auto"

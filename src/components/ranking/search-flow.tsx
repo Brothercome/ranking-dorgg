@@ -115,7 +115,7 @@ export function SearchFlow({ initialGame }: SearchFlowProps) {
       {/* Header */}
       <div className="text-center mb-8">
         <button onClick={reset}>
-          <Image src="/dorranking.svg" alt="랭킹도르그" width={200} height={34} />
+          <Image src="/dorranking.svg" alt="랭킹 도르" width={200} height={34} />
         </button>
         {gameType && (
           <p className="text-muted-foreground mt-2">

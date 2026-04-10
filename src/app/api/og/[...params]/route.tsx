@@ -72,7 +72,7 @@ export async function GET(
             display: "flex",
           }}
         >
-          랭킹도르그
+          랭킹 도르
         </div>
 
         {/* School name */}

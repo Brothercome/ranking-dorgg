@@ -24,7 +24,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     title,
     description,
     alternates: { canonical: `/search?q=${encodeURIComponent(query)}` },
-    openGraph: { title, description, type: "website", siteName: "랭킹도르그", locale: "ko_KR" },
+    openGraph: { title, description, type: "website", siteName: "랭킹 도르", locale: "ko_KR" },
     twitter: { card: "summary", title, description },
     robots: { index: false, follow: true },
   };

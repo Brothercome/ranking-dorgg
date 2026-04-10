@@ -20,7 +20,7 @@ export async function generateMetadata({ searchParams }: SharePageProps): Promis
   const ogUrl = `${baseUrl}/api/og/share?name=${encodeURIComponent(name)}&tier=${encodeURIComponent(tier)}&rank=${rank}&total=${total}&school=${encodeURIComponent(school)}&game=${game}`;
 
   return {
-    title: `${name} - ${school}에서 ${rank}등! | 랭킹도르그`,
+    title: `${name} - ${school}에서 ${rank}등! | 랭킹 도르`,
     description: `${name}님은 ${school}에서 ${total}명 중 ${rank}등! 나도 우리 학교 랭킹 확인하기`,
     openGraph: {
       title: `${school}에서 ${rank}등! 🎮`,
@@ -57,7 +57,7 @@ export default async function SharePage({ params, searchParams }: SharePageProps
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-6">
-          <img src="/dorranking.svg" alt="랭킹도르그" width={180} height={30} className="mx-auto mb-1.5" />
+          <img src="/dorranking.svg" alt="랭킹 도르" width={180} height={30} className="mx-auto mb-1.5" />
           <p className="text-xs sm:text-sm text-muted-foreground">친구가 자랑한 학교 랭킹</p>
         </div>
 

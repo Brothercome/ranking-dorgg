@@ -112,7 +112,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       url: canonical,
       type: "profile",
-      siteName: "랭킹도르그",
+      siteName: "랭킹 도르",
       locale: "ko_KR",
     },
     twitter: {

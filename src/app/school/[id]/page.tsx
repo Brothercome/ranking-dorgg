@@ -72,7 +72,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       url: canonical,
-      siteName: "랭킹도르그",
+      siteName: "랭킹 도르",
       locale: "ko_KR",
       type: "website",
     },
