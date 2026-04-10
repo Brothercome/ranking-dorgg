@@ -22,20 +22,27 @@ type School = {
 };
 
 const getSchoolByIdOrSlug = cache(async (idOrSlug: string): Promise<School | null> => {
-  if (isUuid(idOrSlug)) {
+  // Ensure the param is fully decoded (Next.js 16 may pass encoded values)
+  let decoded = idOrSlug;
+  try {
+    decoded = decodeURIComponent(idOrSlug);
+  } catch {
+    // already decoded or invalid encoding
+  }
+
+  if (isUuid(decoded)) {
     const { data } = await supabase
       .from("organizations")
       .select("id, name, school_level, region_sido, region_sigungu, member_count")
-      .eq("id", idOrSlug)
+      .eq("id", decoded)
       .single();
     return data as School | null;
   }
 
-  // Next.js already decodes dynamic route params, so idOrSlug is the raw name.
   const { data } = await supabase
     .from("organizations")
     .select("id, name, school_level, region_sido, region_sigungu, member_count")
-    .eq("name", idOrSlug)
+    .eq("name", decoded)
     .order("member_count", { ascending: false })
     .limit(1)
     .maybeSingle();
