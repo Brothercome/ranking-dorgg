@@ -329,13 +329,18 @@ function SchoolRankBadge({
     return (
       <button
         onClick={onRegisterClick}
-        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-white/10 hover:border-white/20 hover:bg-white/[0.02] transition-colors text-left"
+        className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border border-blue-500/30 bg-gradient-to-r from-blue-500/[0.06] to-purple-500/[0.06] hover:border-blue-500/50 hover:from-blue-500/[0.10] hover:to-purple-500/[0.10] transition-all text-left group"
       >
-        <div className="w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center text-muted-foreground/40 text-sm">+</div>
-        <div className="flex-1">
-          <div className="text-sm text-muted-foreground/80">학교 등록하기</div>
-          <div className="text-xs text-muted-foreground/40">학교 내 랭킹을 확인해보세요</div>
+        <div className="w-9 h-9 rounded-lg bg-blue-500/15 flex items-center justify-center text-blue-400 text-lg shrink-0">
+          🏫
         </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold text-foreground">내 학교 등록하고 등수 보기</div>
+          <div className="text-xs text-muted-foreground/70">등록하면 학교 친구들 중 내 랭킹이 바로 떠요</div>
+        </div>
+        <span className="text-xs font-bold text-blue-400 shrink-0 group-hover:translate-x-0.5 transition-transform">
+          등록 →
+        </span>
       </button>
     );
   }

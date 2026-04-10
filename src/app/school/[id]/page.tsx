@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { supabase } from "@/lib/db";
 import { SchoolLeaderboard } from "@/components/ranking/school-leaderboard";
+import { DorggCtaBanner } from "@/components/layout/dorgg-cta-banner";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -62,6 +63,13 @@ export default async function SchoolPage({ params }: PageProps) {
         regionSigungu={school.region_sigungu}
         memberCount={school.member_count ?? 0}
       />
+      <div className="w-full max-w-4xl mt-6">
+        <DorggCtaBanner
+          placement="school_page"
+          headline={`${school.name} 공식 커뮤니티`}
+          sub="학교 친구들이랑 실시간 채팅 · 전교 랭킹 · 대항전"
+        />
+      </div>
     </main>
   );
 }
