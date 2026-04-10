@@ -245,7 +245,7 @@ export function Header() {
         </Link>
 
         {/* Search - hidden on home (has its own search) */}
-        {!isHome && <HeaderSearch />}
+        {!isHome ? <HeaderSearch /> : <div className="flex-1" />}
 
         {/* Nav */}
         <nav className="flex items-center gap-6 shrink-0">
