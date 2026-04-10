@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { GameType } from "@/types/game";
 import { GAME_LABELS } from "@/types/game";
+import { schoolHref } from "@/lib/seo/school-url";
 
 interface SchoolRankEntry {
   rank: number;
@@ -98,7 +99,7 @@ export function LeaderboardPreview() {
               {schools.map((entry) => (
                 <Link
                   key={entry.id}
-                  href={`/school/${entry.id}`}
+                  href={schoolHref(entry.name)}
                   prefetch
                   className="w-full grid grid-cols-[32px_1fr_50px_70px] sm:grid-cols-[40px_1fr_80px_50px_70px] gap-2 items-center px-3 sm:px-5 py-3 sm:py-3.5 hover:bg-white/[0.06] transition-all cursor-pointer text-left group"
                 >

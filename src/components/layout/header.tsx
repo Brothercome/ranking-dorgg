@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { GameType } from "@/types/game";
 import { GAME_LABELS } from "@/types/game";
+import { schoolHref } from "@/lib/seo/school-url";
 
 interface SearchSuggestion {
   category: "school" | "player";
@@ -87,7 +88,7 @@ function HeaderSearch() {
             id: `school-${s.id}`,
             label: s.name,
             sublabel: s.region,
-            href: `/school/${s.id}`,
+            href: schoolHref(s.name),
           });
         });
       }

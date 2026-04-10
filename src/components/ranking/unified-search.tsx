@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { GameType } from "@/types/game";
 import { GAME_LABELS } from "@/types/game";
+import { schoolHref } from "@/lib/seo/school-url";
 
 interface SchoolResult {
   id: string;
@@ -120,7 +121,7 @@ export function UnifiedSearch() {
             id: `school-${s.id}`,
             label: s.name,
             sublabel: s.region,
-            href: `/school/${s.id}`,
+            href: schoolHref(s.name),
           });
         });
       }
