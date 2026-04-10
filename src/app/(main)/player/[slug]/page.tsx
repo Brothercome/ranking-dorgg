@@ -57,9 +57,76 @@ function KDAText({ kills, deaths, assists }: { kills: number; deaths: number; as
   return <span className={`text-xs font-semibold ${color}`}>{kda} KDA</span>;
 }
 
+// --- Refresh Button ---
+
+const REFRESH_COOLDOWN_MS = 30 * 60 * 1000; // 30분
+
+function RefreshButton({
+  lastUpdatedAt,
+  onRefresh,
+  refreshing,
+}: {
+  lastUpdatedAt: string | null;
+  onRefresh: () => void;
+  refreshing: boolean;
+}) {
+  const [now, setNow] = useState(Date.now());
+
+  // Tick every second while cooldown is active
+  useEffect(() => {
+    if (!lastUpdatedAt) return;
+    const elapsed = Date.now() - new Date(lastUpdatedAt).getTime();
+    if (elapsed >= REFRESH_COOLDOWN_MS) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [lastUpdatedAt, now]);
+
+  const elapsed = lastUpdatedAt ? now - new Date(lastUpdatedAt).getTime() : Infinity;
+  const canRefresh = elapsed >= REFRESH_COOLDOWN_MS;
+  const remainingMs = Math.max(0, REFRESH_COOLDOWN_MS - elapsed);
+  const remainingMin = Math.floor(remainingMs / 60000);
+  const remainingSec = Math.floor((remainingMs % 60000) / 1000);
+
+  return (
+    <button
+      onClick={onRefresh}
+      disabled={!canRefresh || refreshing}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+        canRefresh && !refreshing
+          ? "bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20"
+          : "bg-white/[0.03] border border-white/10 text-muted-foreground/50 cursor-not-allowed"
+      }`}
+    >
+      <svg
+        width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+        className={refreshing ? "animate-spin" : ""}
+      >
+        <path d="M3 12a9 9 0 0 1 15-6.7L21 8" /><path d="M21 3v5h-5" />
+        <path d="M21 12a9 9 0 0 1-15 6.7L3 16" /><path d="M3 21v-5h5" />
+      </svg>
+      {refreshing
+        ? "갱신 중..."
+        : canRefresh
+        ? "전적 갱신"
+        : `${remainingMin > 0 ? `${remainingMin}분 ` : ""}${remainingSec}초 후`}
+    </button>
+  );
+}
+
 // --- Components ---
 
-function RankCard({ profile }: { profile: GameProfile }) {
+function RankCard({
+  profile,
+  lastUpdatedAt,
+  onRefresh,
+  refreshing,
+}: {
+  profile: GameProfile;
+  lastUpdatedAt: string | null;
+  onRefresh: () => void;
+  refreshing: boolean;
+}) {
   const tierIcon = getTierIcon(profile.gameType, profile.tier);
   const tierName = getTierKorean(profile.gameType, profile.tier);
   const totalGames = profile.wins + profile.losses;
@@ -68,7 +135,10 @@ function RankCard({ profile }: { profile: GameProfile }) {
 
   return (
     <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
-      <div className="text-xs text-muted-foreground/60 mb-3 font-medium">개인/2인 랭크</div>
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-xs text-muted-foreground/60 font-medium">개인/2인 랭크</div>
+        <RefreshButton lastUpdatedAt={lastUpdatedAt} onRefresh={onRefresh} refreshing={refreshing} />
+      </div>
       <div className="flex items-center gap-5">
         {/* Tier Emblem - large */}
         <div className="shrink-0">
@@ -311,10 +381,12 @@ function SchoolRankBadge({
 // --- Game Tab Data ---
 
 interface GameData {
-  profile: GameProfile | null;
+  profile: (GameProfile & { gameAccountId?: string }) | null;
   matches: MatchHistory[];
   loadingProfile: boolean;
   loadingMatches: boolean;
+  lastUpdatedAt: string | null;
+  refreshing: boolean;
 }
 
 const GAMES: GameType[] = ["lol", "valorant"];
@@ -331,8 +403,8 @@ export default function PlayerPage() {
 
   const [activeTab, setActiveTab] = useState<GameType>("lol");
   const [gameData, setGameData] = useState<Record<GameType, GameData>>({
-    lol: { profile: null, matches: [], loadingProfile: true, loadingMatches: false },
-    valorant: { profile: null, matches: [], loadingProfile: true, loadingMatches: false },
+    lol: { profile: null, matches: [], loadingProfile: true, loadingMatches: false, lastUpdatedAt: null, refreshing: false },
+    valorant: { profile: null, matches: [], loadingProfile: true, loadingMatches: false, lastUpdatedAt: null, refreshing: false },
   });
   const [matchesFetched, setMatchesFetched] = useState<Record<GameType, boolean>>({
     lol: false,
@@ -356,7 +428,12 @@ export default function PlayerPage() {
         if (data.success) {
           setGameData((prev) => ({
             ...prev,
-            [game]: { ...prev[game], profile: data.data, loadingProfile: false },
+            [game]: {
+              ...prev[game],
+              profile: data.data,
+              lastUpdatedAt: data.data.lastUpdatedAt ?? null,
+              loadingProfile: false,
+            },
           }));
           return;
         }
@@ -447,6 +524,53 @@ export default function PlayerPage() {
     fetchSchoolRank();
   }, [activeTab, gameData, schoolRankFetched]);
 
+  // Refresh handler
+  const handleRefresh = async () => {
+    const profile = gameData[activeTab].profile;
+    if (!profile) return;
+
+    setGameData((prev) => ({
+      ...prev,
+      [activeTab]: { ...prev[activeTab], refreshing: true },
+    }));
+
+    try {
+      const res = await fetch(`/api/search/${activeTab}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gameName: profile.gameName,
+          tagLine: profile.tagLine,
+          refresh: true,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setGameData((prev) => ({
+          ...prev,
+          [activeTab]: {
+            ...prev[activeTab],
+            profile: data.data,
+            lastUpdatedAt: data.data.lastUpdatedAt ?? new Date().toISOString(),
+            refreshing: false,
+          },
+        }));
+        // Also refetch matches
+        setMatchesFetched((prev) => ({ ...prev, [activeTab]: false }));
+      } else {
+        setGameData((prev) => ({
+          ...prev,
+          [activeTab]: { ...prev[activeTab], refreshing: false },
+        }));
+      }
+    } catch {
+      setGameData((prev) => ({
+        ...prev,
+        [activeTab]: { ...prev[activeTab], refreshing: false },
+      }));
+    }
+  };
+
   // Auto-select first available game
   useEffect(() => {
     const lol = gameData.lol;
@@ -525,7 +649,14 @@ export default function PlayerPage() {
           </div>
 
           {/* Rank Card - prominent */}
-          {current.profile && <RankCard profile={current.profile} />}
+          {current.profile && (
+            <RankCard
+              profile={current.profile}
+              lastUpdatedAt={current.lastUpdatedAt}
+              onRefresh={handleRefresh}
+              refreshing={current.refreshing}
+            />
+          )}
 
           {/* School Ranking */}
           <div>

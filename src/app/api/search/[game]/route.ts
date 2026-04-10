@@ -5,15 +5,18 @@ import { searchFromOpgg } from "@/lib/api/opgg";
 import { henrikApiClient } from "@/lib/api/henrik";
 import { supabase } from "@/lib/db";
 import { checkRateLimit } from "@/lib/cache/rate-limit";
+import { invalidateCache } from "@/lib/cache/redis";
 import type { GameType, GameProfile } from "@/types/game";
 
 const searchSchema = z.object({
   gameName: z.string().min(1).max(50),
   tagLine: z.string().min(1).max(10),
+  refresh: z.boolean().optional(),
 });
 
 const VALID_GAMES: GameType[] = ["valorant", "lol"];
 const STALE_THRESHOLD_MS = 60 * 60 * 1000; // 1시간
+const REFRESH_COOLDOWN_MS = 30 * 60 * 1000; // 30분
 
 export async function POST(
   request: NextRequest,
@@ -40,7 +43,7 @@ export async function POST(
       );
     }
 
-    const { gameName, tagLine } = parsed.data;
+    const { gameName, tagLine, refresh } = parsed.data;
     const gameType = game as GameType;
 
     // Step 1: DB에서 기존 데이터 확인
@@ -59,8 +62,25 @@ export async function POST(
       : 0;
     const isFresh = dbRecord && (now - lastUpdated) < STALE_THRESHOLD_MS;
 
-    // Step 2: 1시간 이내 데이터 → DB에서 바로 반환
-    if (isFresh && dbRecord) {
+    // Refresh 요청 시 쿨다운 검증 (30분)
+    if (refresh && dbRecord) {
+      const elapsed = now - lastUpdated;
+      if (elapsed < REFRESH_COOLDOWN_MS) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "갱신 쿨다운 중입니다",
+            cooldownRemaining: REFRESH_COOLDOWN_MS - elapsed,
+          },
+          { status: 429 }
+        );
+      }
+      // Bypass fresh check by clearing in-memory cache
+      await invalidateCache(`search:${gameType}:*`);
+    }
+
+    // Step 2: 1시간 이내 데이터 → DB에서 바로 반환 (단, refresh 요청이 아닐 때만)
+    if (!refresh && isFresh && dbRecord) {
       return NextResponse.json({
         success: true,
         data: {
@@ -76,6 +96,7 @@ export async function POST(
           tierNumeric: dbRecord.tier_numeric,
           raw: dbRecord.raw_rank_data,
           gameAccountId: dbRecord.id,
+          lastUpdatedAt: dbRecord.last_updated_at,
           cached: true,
         },
       });
@@ -191,7 +212,7 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      data: { ...profile, gameAccountId },
+      data: { ...profile, gameAccountId, lastUpdatedAt: new Date().toISOString() },
     });
   } catch (error) {
     console.error("Search error:", error);
