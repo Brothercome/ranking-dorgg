@@ -12,6 +12,7 @@ import {
 } from "@/types/game";
 import Image from "next/image";
 import Link from "next/link";
+import { SchoolRegisterModal } from "@/components/ranking/school-register-modal";
 
 // --- Helpers ---
 
@@ -243,18 +244,26 @@ interface SchoolRankInfo {
   totalParticipants: number;
 }
 
-function SchoolRankBadge({ ranks, gameType }: { ranks: SchoolRankInfo[]; gameType: GameType }) {
+function SchoolRankBadge({
+  ranks,
+  onRegisterClick,
+}: {
+  ranks: SchoolRankInfo[];
+  gameType: GameType;
+  onRegisterClick: () => void;
+}) {
   if (ranks.length === 0) {
     return (
-      <Link
-        href="/search"
-        className="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-white/10 hover:border-white/20 transition-colors"
+      <button
+        onClick={onRegisterClick}
+        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-white/10 hover:border-white/20 hover:bg-white/[0.02] transition-colors text-left"
       >
         <div className="w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center text-muted-foreground/40 text-sm">+</div>
-        <div>
-          <div className="text-sm text-muted-foreground/60">학교를 등록하면 랭킹을 확인할 수 있어요</div>
+        <div className="flex-1">
+          <div className="text-sm text-muted-foreground/80">학교 등록하기</div>
+          <div className="text-xs text-muted-foreground/40">학교 내 랭킹을 확인해보세요</div>
         </div>
-      </Link>
+      </button>
     );
   }
 
@@ -332,6 +341,7 @@ export default function PlayerPage() {
   const [schoolRanks, setSchoolRanks] = useState<SchoolRankInfo[]>([]);
   const [schoolRankLoading, setSchoolRankLoading] = useState(false);
   const [schoolRankFetched, setSchoolRankFetched] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
 
   // Fetch both profiles in parallel
   useEffect(() => {
@@ -523,7 +533,11 @@ export default function PlayerPage() {
             {schoolRankLoading ? (
               <div className="h-[60px] rounded-xl bg-white/[0.03] border border-white/5 animate-pulse" />
             ) : (
-              <SchoolRankBadge ranks={schoolRanks} gameType={activeTab} />
+              <SchoolRankBadge
+                ranks={schoolRanks}
+                gameType={activeTab}
+                onRegisterClick={() => setShowRegisterModal(true)}
+              />
             )}
           </div>
 
@@ -545,6 +559,20 @@ export default function PlayerPage() {
             )}
           </div>
         </>
+      )}
+
+      {/* School Register Modal */}
+      {current.profile && (
+        <SchoolRegisterModal
+          open={showRegisterModal}
+          onClose={() => setShowRegisterModal(false)}
+          gameAccountId={(current.profile as GameProfile & { gameAccountId: string }).gameAccountId}
+          gameType={activeTab}
+          onRegistered={() => {
+            setSchoolRankFetched(false);
+            setSchoolRanks([]);
+          }}
+        />
       )}
     </main>
   );

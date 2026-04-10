@@ -7,6 +7,66 @@ import { normalizeLolTier } from "@/lib/ranking/normalize";
  */
 
 const OPGG_BASE = "https://www.op.gg/summoners/kr";
+const OPGG_MULTISEARCH = "https://www.op.gg/multisearch/kr";
+
+export interface OpggSearchResult {
+  gameName: string;
+  tagLine: string;
+  tier: string;
+  level: number;
+}
+
+/**
+ * op.gg multisearch로 이름 기반 플레이어 검색 (최대 여러 명).
+ * tag가 없을 때 사용 — 유사 이름의 후보들을 반환합니다.
+ */
+export async function searchPlayersFromOpgg(
+  keyword: string,
+  limit = 5
+): Promise<OpggSearchResult[]> {
+  try {
+    const url = `${OPGG_MULTISEARCH}?summoners=${encodeURIComponent(keyword)}`;
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "Accept": "text/html",
+      },
+      redirect: "follow",
+    });
+    if (!res.ok) return [];
+
+    const html = (await res.text()).replace(/\\"/g, '"');
+
+    const results: OpggSearchResult[] = [];
+    let idx = 0;
+    while (results.length < limit) {
+      idx = html.indexOf('"game_name":"', idx + 1);
+      if (idx < 0) break;
+      const chunk = html.slice(idx, idx + 1500);
+
+      const nameMatch = chunk.match(/"game_name":"([^"]+)"/);
+      const tagMatch = chunk.match(/"tagline":"([^"]+)"/);
+      if (!nameMatch || !tagMatch) continue;
+
+      // 템플릿 문자열은 제외 ("Game name + <span>#{region}</span>")
+      if (nameMatch[1].includes("\\u003c") || nameMatch[1].includes("{region}")) continue;
+
+      const tierMatch = chunk.match(/medals(?:_new|_mini)?\/(\w+)\.png/);
+      const lvlMatch = chunk.match(/"level":(\d+)/);
+
+      results.push({
+        gameName: nameMatch[1],
+        tagLine: tagMatch[1],
+        tier: tierMatch ? tierMatch[1].toUpperCase() : "UNRANKED",
+        level: lvlMatch ? parseInt(lvlMatch[1], 10) : 0,
+      });
+    }
+    return results;
+  } catch {
+    return [];
+  }
+}
 
 // "grandmaster" → "GRANDMASTER", "diamond 2" → tier=DIAMOND, rank=II
 const DIVISION_MAP: Record<string, string> = { "1": "I", "2": "II", "3": "III", "4": "IV" };
