@@ -7,6 +7,7 @@ import { GAME_LABELS } from "@/types/game";
 import { LOL_TIER_KOREAN, LOL_TIER_ICONS } from "@/types/game";
 import Image from "next/image";
 import Link from "next/link";
+import { DorggCtaBanner } from "@/components/layout/dorgg-cta-banner";
 
 interface SchoolResult {
   id: string;
@@ -234,6 +235,11 @@ function SearchResults() {
           <p className="text-muted-foreground">검색 결과가 없습니다</p>
           <p className="text-sm text-muted-foreground/50 mt-1">닉네임#태그 형식으로 검색해보세요</p>
         </div>
+      )}
+
+      {/* dor.gg CTA */}
+      {searched && !loading && (
+        <DorggCtaBanner placement="search_results" />
       )}
     </div>
   );

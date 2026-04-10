@@ -351,19 +351,39 @@ function SchoolRankBadge({
         const pct = r.totalParticipants > 0 && r.myRank
           ? Math.round((r.myRank / r.totalParticipants) * 100)
           : null;
+        const isTop3 = r.myRank !== null && r.myRank <= 3;
+        const isTop10Pct = pct !== null && pct <= 10;
+        const crown = r.myRank === 1 ? "👑" : r.myRank === 2 ? "🥈" : r.myRank === 3 ? "🥉" : null;
+        const badgeBg = isTop3
+          ? "bg-gradient-to-br from-yellow-400/30 to-orange-500/20 ring-2 ring-yellow-400/50"
+          : isTop10Pct
+          ? "bg-gradient-to-br from-orange-400/25 to-pink-500/20 ring-1 ring-orange-400/40"
+          : "bg-gradient-to-br from-blue-500/20 to-purple-500/20";
+        const containerGlow = isTop3
+          ? "bg-gradient-to-r from-yellow-500/[0.08] to-orange-500/[0.05] border-yellow-400/30 hover:border-yellow-400/50"
+          : isTop10Pct
+          ? "bg-gradient-to-r from-orange-500/[0.06] to-pink-500/[0.04] border-orange-400/25 hover:border-orange-400/40"
+          : "bg-white/[0.03] border-white/10 hover:bg-white/[0.05]";
         return (
           <Link
             key={r.organizationId}
             href={`/school/${r.organizationId}`}
-            className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.05] transition-colors"
+            className={`flex items-center gap-4 px-4 py-3 rounded-xl border transition-colors ${containerGlow}`}
           >
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center shrink-0">
-              <span className="text-lg font-bold text-blue-400">
-                {r.myRank ?? "?"}
-              </span>
+            <div className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 ${badgeBg}`}>
+              {crown ? (
+                <span className="text-xl">{crown}</span>
+              ) : (
+                <span className="text-lg font-bold text-blue-300">
+                  {r.myRank ?? "?"}
+                </span>
+              )}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium truncate">{r.organizationName}</div>
+              <div className="text-sm font-medium truncate flex items-center gap-1.5">
+                {r.organizationName}
+                {isTop3 && <span className="text-[10px] font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-400/30 rounded-full px-1.5 py-0.5">TOP {r.myRank}</span>}
+              </div>
               <div className="text-xs text-muted-foreground">
                 {r.region && <span>{r.region} </span>}
                 {r.schoolLevel && <span>{r.schoolLevel === "high" ? "고등학교" : r.schoolLevel === "middle" ? "중학교" : "대학교"}</span>}
@@ -374,8 +394,8 @@ function SchoolRankBadge({
                 <div className="text-sm font-semibold">{r.myRank}등 <span className="text-muted-foreground font-normal">/ {r.totalParticipants}명</span></div>
               )}
               {pct !== null && (
-                <div className={`text-xs font-medium ${pct <= 10 ? "text-orange-400" : pct <= 30 ? "text-blue-400" : "text-muted-foreground"}`}>
-                  상위 {pct}%
+                <div className={`text-xs font-bold ${pct <= 10 ? "text-orange-300" : pct <= 30 ? "text-blue-400" : "text-muted-foreground"}`}>
+                  {pct <= 10 ? "🔥 " : ""}상위 {pct}%
                 </div>
               )}
             </div>

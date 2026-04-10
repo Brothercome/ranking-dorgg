@@ -272,7 +272,7 @@ export function Header() {
         {!isHome ? <HeaderSearch /> : <div className="flex-1" />}
 
         {/* Nav */}
-        <nav className="flex items-center gap-4 sm:gap-6 shrink-0">
+        <nav className="flex items-center gap-3 sm:gap-4 shrink-0">
           <Link
             href="/"
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -280,10 +280,10 @@ export function Header() {
             랭킹
           </Link>
           <a
-            href="https://dor.gg"
+            href="https://dor.gg/?utm_source=ranking_dorgg&utm_medium=header&utm_campaign=nav"
             target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            rel="noopener noreferrer sponsored"
+            className="text-xs sm:text-sm font-bold bg-white text-black px-3 sm:px-3.5 py-1.5 rounded-lg hover:scale-[1.03] active:scale-[0.97] transition-transform"
           >
             커뮤니티
           </a>

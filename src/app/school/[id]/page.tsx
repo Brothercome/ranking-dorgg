@@ -1,20 +1,29 @@
 import type { Metadata } from "next";
+import { cache } from "react";
 import { supabase } from "@/lib/db";
 import { SchoolLeaderboard } from "@/components/ranking/school-leaderboard";
 import { DorggCtaBanner } from "@/components/layout/dorgg-cta-banner";
+
+// ISR: 1시간마다 재생성 (DB 변경이 자주 없는 페이지)
+export const revalidate = 3600;
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params;
-
-  const { data: school } = await supabase
+// React cache로 같은 요청 내에서 generateMetadata와 SchoolPage 쿼리 중복 제거
+const getSchool = cache(async (id: string) => {
+  const { data } = await supabase
     .from("organizations")
-    .select("name, region_sido")
+    .select("*")
     .eq("id", id)
     .single();
+  return data;
+});
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const school = await getSchool(id);
 
   const schoolName = school?.name ?? "학교";
   const region = school?.region_sido ?? "";
@@ -34,12 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function SchoolPage({ params }: PageProps) {
   const { id } = await params;
-
-  const { data: school } = await supabase
-    .from("organizations")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const school = await getSchool(id);
 
   if (!school) {
     return (

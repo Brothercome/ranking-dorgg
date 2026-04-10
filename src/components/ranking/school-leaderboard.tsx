@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import type { GameType } from "@/types/game";
 import { GAME_LABELS } from "@/types/game";
 import { TierBadge } from "./tier-badge";
@@ -48,6 +49,7 @@ export function SchoolLeaderboard({
   regionSigungu,
   memberCount,
 }: SchoolLeaderboardProps) {
+  const router = useRouter();
   const [gameType, setGameType] = useState<GameType>("lol");
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -197,9 +199,10 @@ export function SchoolLeaderboard({
           {top3.map((entry) => {
             const tierColor = getTierColor(entry.tier);
             return (
-              <div
+              <button
                 key={entry.gameAccountId}
-                className="relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-4 text-center"
+                onClick={() => router.push(`/player/${encodeURIComponent(entry.gameName)}-${encodeURIComponent(entry.tagLine)}`)}
+                className="relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-4 text-center hover:border-white/20 hover:bg-white/[0.05] transition-all cursor-pointer"
                 style={{
                   boxShadow: `0 0 20px ${tierColor}15`,
                 }}
@@ -222,7 +225,7 @@ export function SchoolLeaderboard({
                     {entry.points}{gameType === "lol" ? "LP" : "RR"}
                   </div>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -243,9 +246,10 @@ export function SchoolLeaderboard({
             {rest.map((entry) => {
               const tierColor = getTierColor(entry.tier);
               return (
-                <div
+                <button
                   key={entry.gameAccountId}
-                  className="grid grid-cols-[40px_1fr_auto_70px] gap-2 items-center px-5 py-3 hover:bg-white/[0.02] transition-colors"
+                  onClick={() => router.push(`/player/${encodeURIComponent(entry.gameName)}-${encodeURIComponent(entry.tagLine)}`)}
+                  className="w-full grid grid-cols-[40px_1fr_auto_70px] gap-2 items-center px-5 py-3 hover:bg-white/[0.05] transition-colors text-left cursor-pointer"
                 >
                   <span className="text-sm font-bold text-muted-foreground text-center">
                     {entry.rank}
@@ -260,7 +264,7 @@ export function SchoolLeaderboard({
                   <span className="text-xs text-muted-foreground text-right">
                     {entry.points}{gameType === "lol" ? "LP" : "RR"}
                   </span>
-                </div>
+                </button>
               );
             })}
           </div>
