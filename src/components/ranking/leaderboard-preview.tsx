@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import type { GameType } from "@/types/game";
 import { GAME_LABELS } from "@/types/game";
 
-type ScopeTab = "school" | "region";
-
 interface SchoolRankEntry {
   rank: number;
   id: string;
@@ -16,23 +14,13 @@ interface SchoolRankEntry {
   score: number;
 }
 
-interface RegionRankEntry {
-  rank: number;
-  region: string;
-  schoolCount: number;
-  playerCount: number;
-  score: number;
-}
-
 const RANK_BADGES = ["👑", "🥈", "🥉"];
 const PAGE_SIZE = 10;
 
 export function LeaderboardPreview() {
   const router = useRouter();
-  const [scope, setScope] = useState<ScopeTab>("school");
   const [gameType, setGameType] = useState<GameType>("lol");
   const [schools, setSchools] = useState<SchoolRankEntry[]>([]);
-  const [regions, setRegions] = useState<RegionRankEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -40,20 +28,16 @@ export function LeaderboardPreview() {
 
   useEffect(() => {
     setPage(1);
-  }, [gameType, scope]);
+  }, [gameType]);
 
   useEffect(() => {
     async function fetchLeaderboard() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/leaderboard?game=${gameType}&scope=${scope}&limit=${PAGE_SIZE}&page=${page}`);
+        const res = await fetch(`/api/leaderboard?game=${gameType}&scope=school&limit=${PAGE_SIZE}&page=${page}`);
         const data = await res.json();
         if (data.success) {
-          if (scope === "school") {
-            setSchools(data.data);
-          } else {
-            setRegions(data.data);
-          }
+          setSchools(data.data);
           setTotal(data.total ?? 0);
           setHasMore(data.hasMore ?? false);
         }
@@ -61,33 +45,14 @@ export function LeaderboardPreview() {
       setLoading(false);
     }
     fetchLeaderboard();
-  }, [gameType, scope, page]);
+  }, [gameType, page]);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div className="w-full max-w-2xl mx-auto mt-8 sm:mt-12">
-      {/* Header with scope + game tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-3 sm:mb-4 px-1">
-        <div className="flex gap-1 bg-white/5 backdrop-blur-sm rounded-lg p-0.5 border border-white/10">
-          {([
-            { id: "school" as ScopeTab, label: "🏫 학교" },
-            { id: "region" as ScopeTab, label: "📍 지역" },
-          ]).map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setScope(tab.id)}
-              className={`px-3 sm:px-4 py-1.5 rounded-md text-xs font-medium transition-all ${
-                scope === tab.id
-                  ? "bg-white/10 text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
+      {/* Header with game tabs */}
+      <div className="flex flex-wrap items-center justify-end gap-2 mb-3 sm:mb-4 px-1">
         <div className="flex gap-1 bg-white/5 backdrop-blur-sm rounded-lg p-0.5 border border-white/10">
           {(["lol", "valorant"] as GameType[]).map((game) => (
             <button
@@ -120,7 +85,7 @@ export function LeaderboardPreview() {
               </div>
             ))}
           </div>
-        ) : scope === "school" ? (
+        ) : (
           <>
             <div className="grid grid-cols-[32px_1fr_50px_70px] sm:grid-cols-[40px_1fr_80px_50px_70px] gap-2 px-3 sm:px-5 py-2.5 border-b border-white/5 text-xs text-muted-foreground/60">
               <span>#</span>
@@ -155,44 +120,6 @@ export function LeaderboardPreview() {
               ))}
               {schools.length === 0 && (
                 <div className="text-center py-8 text-sm text-muted-foreground">등록된 학교가 없습니다</div>
-              )}
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="grid grid-cols-[32px_1fr_50px_70px] sm:grid-cols-[40px_1fr_50px_50px_70px] gap-2 px-3 sm:px-5 py-2.5 border-b border-white/5 text-xs text-muted-foreground/60">
-              <span>#</span>
-              <span>지역</span>
-              <span className="hidden sm:inline">학교</span>
-              <span>참여</span>
-              <span className="text-right">점수</span>
-            </div>
-
-            <div className="divide-y divide-white/5 relative">
-              {regions.map((entry) => (
-                <button
-                  key={entry.region}
-                  onClick={() => router.push(`/region/${encodeURIComponent(entry.region)}`)}
-                  className="w-full grid grid-cols-[32px_1fr_50px_70px] sm:grid-cols-[40px_1fr_50px_50px_70px] gap-2 items-center px-3 sm:px-5 py-3 sm:py-3.5 hover:bg-white/[0.06] transition-all cursor-pointer text-left group"
-                >
-                  <div className="text-center">
-                    {entry.rank <= 3 ? (
-                      <span className="text-lg">{RANK_BADGES[entry.rank - 1]}</span>
-                    ) : (
-                      <span className="text-sm font-bold text-muted-foreground">{entry.rank}</span>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <span className="block text-sm font-medium truncate">{entry.region}</span>
-                    <span className="block sm:hidden text-[10px] text-muted-foreground/70 truncate">{entry.schoolCount}개 학교</span>
-                  </div>
-                  <span className="hidden sm:block text-xs text-muted-foreground">{entry.schoolCount}개</span>
-                  <span className="text-xs text-muted-foreground text-right sm:text-left">{entry.playerCount}명</span>
-                  <span className="text-right text-sm font-bold text-primary">{entry.score.toLocaleString()}</span>
-                </button>
-              ))}
-              {regions.length === 0 && (
-                <div className="text-center py-8 text-sm text-muted-foreground">등록된 지역이 없습니다</div>
               )}
             </div>
           </>

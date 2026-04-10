@@ -23,7 +23,7 @@ interface GameResult {
   gameType: GameType;
 }
 
-type SuggestionCategory = "school" | "player" | "region";
+type SuggestionCategory = "school" | "player";
 
 interface Suggestion {
   category: SuggestionCategory;
@@ -58,24 +58,14 @@ function PlayerIcon() {
   );
 }
 
-function RegionIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground/60">
-      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
-    </svg>
-  );
-}
-
 const CATEGORY_LABELS: Record<SuggestionCategory, string> = {
   school: "학교",
   player: "플레이어",
-  region: "지역",
 };
 
 const CATEGORY_ICONS: Record<SuggestionCategory, () => React.ReactElement> = {
   school: SchoolIcon,
   player: PlayerIcon,
-  region: RegionIcon,
 };
 
 export function UnifiedSearch() {
@@ -131,21 +121,6 @@ export function UnifiedSearch() {
             label: s.name,
             sublabel: s.region,
             href: `/school/${s.id}`,
-          });
-        });
-
-        // Unique regions (max 2)
-        const seenRegions = new Set<string>();
-        schools.forEach((s) => {
-          if (s.region && !seenRegions.has(s.region)) seenRegions.add(s.region);
-        });
-        Array.from(seenRegions).slice(0, 2).forEach((region) => {
-          schoolItems.push({
-            category: "region",
-            id: `region-${region}`,
-            label: region,
-            sublabel: "",
-            href: `/region/${encodeURIComponent(region)}`,
           });
         });
       }

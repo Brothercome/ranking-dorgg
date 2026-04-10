@@ -8,7 +8,7 @@ import type { GameType } from "@/types/game";
 import { GAME_LABELS } from "@/types/game";
 
 interface SearchSuggestion {
-  category: "school" | "player" | "region";
+  category: "school" | "player";
   id: string;
   label: string;
   sublabel: string;
@@ -18,7 +18,6 @@ interface SearchSuggestion {
 const CATEGORY_LABELS: Record<string, string> = {
   school: "학교",
   player: "플레이어",
-  region: "지역",
 };
 
 function HeaderSearch() {

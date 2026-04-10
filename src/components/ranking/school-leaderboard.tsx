@@ -31,12 +31,6 @@ interface LeaderboardEntry {
   celebrityCategory?: string | null;
 }
 
-interface RegionRanking {
-  rank: number;
-  total: number;
-  region: string;
-}
-
 interface SchoolLeaderboardProps {
   schoolId: string;
   schoolName: string;
@@ -62,7 +56,6 @@ export function SchoolLeaderboard({
   const [hasMore, setHasMore] = useState(false);
   const [totalMembers, setTotalMembers] = useState(0);
   const [schoolScore, setSchoolScore] = useState(0);
-  const [regionRanking, setRegionRanking] = useState<RegionRanking | null>(null);
 
   const fetchLeaderboard = useCallback(async (gameParam: GameType, pageParam: number, append: boolean) => {
     if (append) {
@@ -83,7 +76,6 @@ export function SchoolLeaderboard({
         setHasMore(data.data.hasMore);
         setTotalMembers(data.data.totalMembers);
         setSchoolScore(data.data.schoolScore ?? 0);
-        setRegionRanking(data.data.regionRanking);
       }
     } catch {
       // silent
@@ -295,22 +287,6 @@ export function SchoolLeaderboard({
         </p>
       )}
 
-      {/* Region Ranking */}
-      {!loading && regionRanking && (
-        <div className="relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-5 text-center">
-          <div className="absolute -top-16 -right-16 w-32 h-32 rounded-full bg-blue-500/10 blur-2xl" />
-          <div className="relative">
-            <p className="text-xs text-muted-foreground/60 mb-1">지역 학교 랭킹</p>
-            <p className="text-lg font-bold">
-              <span className="text-blue-400">{regionRanking.region}</span>에서{" "}
-              <span className="text-primary">{regionRanking.rank}등</span>
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {regionRanking.region} 내 {regionRanking.total}개 학교 중
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
