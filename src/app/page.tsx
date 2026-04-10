@@ -36,13 +36,13 @@ export default function HomePage() {
       {/* Unified Search */}
       <UnifiedSearch />
 
+      {/* dor.gg CTA Banner — above the fold for conversion */}
+      <div className="w-full max-w-2xl mx-auto mt-5 sm:mt-6">
+        <DorggCtaBanner placement="home_hero" />
+      </div>
+
       {/* Leaderboard */}
       <LeaderboardPreview />
-
-      {/* dor.gg CTA Banner */}
-      <div className="w-full max-w-2xl mx-auto mt-6 sm:mt-8">
-        <DorggCtaBanner placement="home_bottom" />
-      </div>
 
     </main>
   );
