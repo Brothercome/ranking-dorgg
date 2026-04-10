@@ -242,12 +242,12 @@ export function UnifiedSearch() {
     <div className="w-full max-w-2xl mx-auto">
       <div className="relative">
         {/* Search Input */}
-        <div className="flex items-center bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-4 shadow-lg gap-3">
+        <div className="flex items-center bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl px-4 sm:px-5 py-3.5 sm:py-4 shadow-lg gap-3">
           <SearchIcon />
           <input
             ref={inputRef}
             type="text"
-            placeholder="학교 또는 게임 아이디 검색"
+            placeholder="학교 · 게임 아이디 검색"
             value={query}
             onChange={(e) => handleInput(e.target.value)}
             onFocus={() => { if (suggestions.length > 0) setShowDropdown(true); }}

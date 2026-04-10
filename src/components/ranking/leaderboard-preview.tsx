@@ -66,18 +66,18 @@ export function LeaderboardPreview() {
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
-    <div className="w-full max-w-2xl mx-auto mt-12">
+    <div className="w-full max-w-2xl mx-auto mt-8 sm:mt-12">
       {/* Header with scope + game tabs */}
-      <div className="flex items-center justify-between mb-4 px-1">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3 sm:mb-4 px-1">
         <div className="flex gap-1 bg-white/5 backdrop-blur-sm rounded-lg p-0.5 border border-white/10">
           {([
-            { id: "school" as ScopeTab, label: "🏫 학교 종합" },
-            { id: "region" as ScopeTab, label: "📍 지역 종합" },
+            { id: "school" as ScopeTab, label: "🏫 학교" },
+            { id: "region" as ScopeTab, label: "📍 지역" },
           ]).map((tab) => (
             <button
               key={tab.id}
               onClick={() => setScope(tab.id)}
-              className={`px-4 py-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`px-3 sm:px-4 py-1.5 rounded-md text-xs font-medium transition-all ${
                 scope === tab.id
                   ? "bg-white/10 text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -93,7 +93,7 @@ export function LeaderboardPreview() {
             <button
               key={game}
               onClick={() => setGameType(game)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                 gameType === game
                   ? "bg-white/10 text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -122,10 +122,10 @@ export function LeaderboardPreview() {
           </div>
         ) : scope === "school" ? (
           <>
-            <div className="grid grid-cols-[40px_1fr_80px_50px_70px] gap-2 px-5 py-2.5 border-b border-white/5 text-xs text-muted-foreground/60">
+            <div className="grid grid-cols-[32px_1fr_50px_70px] sm:grid-cols-[40px_1fr_80px_50px_70px] gap-2 px-3 sm:px-5 py-2.5 border-b border-white/5 text-xs text-muted-foreground/60">
               <span>#</span>
               <span>학교</span>
-              <span>지역</span>
+              <span className="hidden sm:inline">지역</span>
               <span>참여</span>
               <span className="text-right">점수</span>
             </div>
@@ -135,7 +135,7 @@ export function LeaderboardPreview() {
                 <button
                   key={entry.id}
                   onClick={() => router.push(`/school/${entry.id}`)}
-                  className="w-full grid grid-cols-[40px_1fr_80px_50px_70px] gap-2 items-center px-5 py-3.5 hover:bg-white/[0.06] transition-all cursor-pointer text-left group"
+                  className="w-full grid grid-cols-[32px_1fr_50px_70px] sm:grid-cols-[40px_1fr_80px_50px_70px] gap-2 items-center px-3 sm:px-5 py-3 sm:py-3.5 hover:bg-white/[0.06] transition-all cursor-pointer text-left group"
                 >
                   <div className="text-center">
                     {entry.rank <= 3 ? (
@@ -144,9 +144,12 @@ export function LeaderboardPreview() {
                       <span className="text-sm font-bold text-muted-foreground">{entry.rank}</span>
                     )}
                   </div>
-                  <span className="text-sm font-medium truncate">{entry.name}</span>
-                  <span className="text-xs text-muted-foreground truncate">{entry.region ?? "-"}</span>
-                  <span className="text-xs text-muted-foreground">{entry.memberCount}명</span>
+                  <div className="min-w-0">
+                    <span className="block text-sm font-medium truncate">{entry.name}</span>
+                    <span className="block sm:hidden text-[10px] text-muted-foreground/70 truncate">{entry.region ?? "-"}</span>
+                  </div>
+                  <span className="hidden sm:block text-xs text-muted-foreground truncate">{entry.region ?? "-"}</span>
+                  <span className="text-xs text-muted-foreground text-right sm:text-left">{entry.memberCount}명</span>
                   <span className="text-right text-sm font-bold text-primary">{entry.score.toLocaleString()}</span>
                 </button>
               ))}
@@ -157,10 +160,10 @@ export function LeaderboardPreview() {
           </>
         ) : (
           <>
-            <div className="grid grid-cols-[40px_1fr_50px_50px_70px] gap-2 px-5 py-2.5 border-b border-white/5 text-xs text-muted-foreground/60">
+            <div className="grid grid-cols-[32px_1fr_50px_70px] sm:grid-cols-[40px_1fr_50px_50px_70px] gap-2 px-3 sm:px-5 py-2.5 border-b border-white/5 text-xs text-muted-foreground/60">
               <span>#</span>
               <span>지역</span>
-              <span>학교</span>
+              <span className="hidden sm:inline">학교</span>
               <span>참여</span>
               <span className="text-right">점수</span>
             </div>
@@ -170,7 +173,7 @@ export function LeaderboardPreview() {
                 <button
                   key={entry.region}
                   onClick={() => router.push(`/region/${encodeURIComponent(entry.region)}`)}
-                  className="w-full grid grid-cols-[40px_1fr_50px_50px_70px] gap-2 items-center px-5 py-3.5 hover:bg-white/[0.06] transition-all cursor-pointer text-left group"
+                  className="w-full grid grid-cols-[32px_1fr_50px_70px] sm:grid-cols-[40px_1fr_50px_50px_70px] gap-2 items-center px-3 sm:px-5 py-3 sm:py-3.5 hover:bg-white/[0.06] transition-all cursor-pointer text-left group"
                 >
                   <div className="text-center">
                     {entry.rank <= 3 ? (
@@ -179,9 +182,12 @@ export function LeaderboardPreview() {
                       <span className="text-sm font-bold text-muted-foreground">{entry.rank}</span>
                     )}
                   </div>
-                  <span className="text-sm font-medium truncate">{entry.region}</span>
-                  <span className="text-xs text-muted-foreground">{entry.schoolCount}개</span>
-                  <span className="text-xs text-muted-foreground">{entry.playerCount}명</span>
+                  <div className="min-w-0">
+                    <span className="block text-sm font-medium truncate">{entry.region}</span>
+                    <span className="block sm:hidden text-[10px] text-muted-foreground/70 truncate">{entry.schoolCount}개 학교</span>
+                  </div>
+                  <span className="hidden sm:block text-xs text-muted-foreground">{entry.schoolCount}개</span>
+                  <span className="text-xs text-muted-foreground text-right sm:text-left">{entry.playerCount}명</span>
                   <span className="text-right text-sm font-bold text-primary">{entry.score.toLocaleString()}</span>
                 </button>
               ))}

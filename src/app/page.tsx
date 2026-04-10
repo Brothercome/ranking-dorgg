@@ -6,7 +6,7 @@ import { LeaderboardPreview } from "@/components/ranking/leaderboard-preview";
 
 export default function HomePage() {
   return (
-    <main className="flex-1 flex flex-col items-center px-4 py-12 relative overflow-hidden">
+    <main className="flex-1 flex flex-col items-center px-3 sm:px-4 py-8 sm:py-12 relative overflow-hidden">
       {/* Background effects */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-purple-600/[0.07] blur-[120px]" />
@@ -15,16 +15,16 @@ export default function HomePage() {
       </div>
 
       {/* Hero */}
-      <div className="text-center mb-10 max-w-2xl">
+      <div className="text-center mb-6 sm:mb-10 max-w-2xl px-2">
         <Image
           src="/dorranking.svg"
           alt="랭킹도르그"
           width={300}
           height={50}
-          className="mx-auto mb-4"
+          className="mx-auto mb-3 sm:mb-4 w-[220px] sm:w-[300px] h-auto"
           priority
         />
-        <p className="text-lg text-muted-foreground">
+        <p className="text-sm sm:text-lg text-muted-foreground">
           우리 학교에서 내 게임 랭킹은 몇 등?
         </p>
       </div>

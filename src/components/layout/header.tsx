@@ -190,7 +190,7 @@ function HeaderSearch() {
   }, []);
 
   return (
-    <div className="flex items-center flex-1 max-w-md mx-4 relative">
+    <div className="flex items-center flex-1 max-w-md mx-2 sm:mx-4 relative">
       <div className="relative w-full">
         <svg
           width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -257,17 +257,23 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/60 backdrop-blur-xl">
-      <div className="flex h-16 items-center px-4 max-w-5xl mx-auto">
+      <div className="flex h-14 sm:h-16 items-center px-3 sm:px-4 max-w-5xl mx-auto">
         {/* Logo - Home */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
-          <Image src="/logo.svg" alt="도르" width={80} height={80} />
+          <Image
+            src="/logo.svg"
+            alt="도르"
+            width={80}
+            height={80}
+            className="w-14 h-14 sm:w-20 sm:h-20"
+          />
         </Link>
 
         {/* Search - hidden on home (has its own search) */}
         {!isHome ? <HeaderSearch /> : <div className="flex-1" />}
 
         {/* Nav */}
-        <nav className="flex items-center gap-6 shrink-0">
+        <nav className="flex items-center gap-4 sm:gap-6 shrink-0">
           <Link
             href="/"
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
