@@ -219,7 +219,7 @@ function MatchCard({ match }: { match: MatchHistory }) {
       {/* Champion / Agent icon */}
       {player.champion && (
         <Image
-          src={`https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/${player.champion}.png`}
+          src={`https://ddragon.leagueoflegends.com/cdn/16.7.1/img/champion/${player.champion}.png`}
           alt={player.champion}
           width={40}
           height={40}
@@ -248,7 +248,7 @@ function MatchCard({ match }: { match: MatchHistory }) {
             {player.items.map((itemId, i) => (
               <Image
                 key={i}
-                src={`https://ddragon.leagueoflegends.com/cdn/14.24.1/img/item/${itemId}.png`}
+                src={`https://ddragon.leagueoflegends.com/cdn/16.7.1/img/item/${itemId}.png`}
                 alt={`item ${itemId}`}
                 width={20}
                 height={20}

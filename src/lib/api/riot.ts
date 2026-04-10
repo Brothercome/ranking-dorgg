@@ -122,7 +122,7 @@ export const riotApiClient: GameApiAdapter = {
       tierNumeric: soloQueue
         ? normalizeLolTier(soloQueue.tier, soloQueue.rank, soloQueue.leaguePoints)
         : 0,
-      profileIconUrl: `https://ddragon.leagueoflegends.com/cdn/14.24.1/img/profileicon/${summoner.profileIconId}.png`,
+      profileIconUrl: `https://ddragon.leagueoflegends.com/cdn/16.7.1/img/profileicon/${summoner.profileIconId}.png`,
       raw: { account, summoner, soloQueue },
     };
 

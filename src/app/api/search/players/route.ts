@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       const raw = row.raw_rank_data as { summoner?: { profileIconId?: number } } | null;
       const profileIconId = raw?.summoner?.profileIconId;
       const profileIconUrl = profileIconId !== undefined
-        ? `https://ddragon.leagueoflegends.com/cdn/14.24.1/img/profileicon/${profileIconId}.png`
+        ? `https://ddragon.leagueoflegends.com/cdn/16.7.1/img/profileicon/${profileIconId}.png`
         : undefined;
 
       return {
